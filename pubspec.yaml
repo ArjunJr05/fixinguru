@@ -38,6 +38,10 @@ dependencies:
   hexcolor: ^3.0.1
   smooth_page_indicator: ^1.2.1
   lottie: ^3.2.0
+  flutter_bloc: ^9.1.0
+  carousel_slider: ^5.0.0
+  share_plus: ^10.1.4
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,6 @@
+import 'package:fixinguru/home/homepage.dart';
+import 'package:fixinguru/home/mainpage.dart';
+import 'package:fixinguru/login/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -721,28 +724,6 @@ class _InterestScreenState extends State<InterestScreen> {
 }
 
 // TaskAlertsPage placeholder (simplified but responsive)
-class TaskAlertsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
-
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text(
-          'Task Alerts',
-          style: TextStyle(fontSize: 20 / textScaleFactor),
-        ),
-      ),
-      body: Center(
-        child: Text(
-          'Task Alerts Page',
-          style: TextStyle(fontSize: 16 / textScaleFactor),
-        ),
-      ),
-    );
-  }
-}
 
 // Background painter for dual colors
 class BackgroundPainter extends CustomPainter {

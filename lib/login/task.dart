@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+import 'package:fixinguru/home/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -109,7 +110,7 @@ class _TaskAlertsPageState extends State<TaskAlertsPage>
     _animationController.reset();
     _animationController.forward();
 
-    // Here you would typically send this data to your backend
+    // Show a success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -128,329 +129,267 @@ class _TaskAlertsPageState extends State<TaskAlertsPage>
         ),
       ),
     );
+
+    // Navigate to MainPage after a short delay
+    Future.delayed(Duration(milliseconds: 1500), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainPage()),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get screen size using MediaQuery
-    final screenSize = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
+    final padding = MediaQuery.of(context).padding;
+    final isSmallScreen = size.width < 360;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    // Adjust font sizes based on screen size
+    final titleFontSize = isSmallScreen ? 28.0 : 32.0;
+    final subtitleFontSize = isSmallScreen ? 26.0 : 32.0;
+    final buttonFontSize = isSmallScreen ? 16.0 : 18.0;
+
+    // Adjust paddings based on screen size
+    final horizontalPadding = size.width * 0.06; // 6% of screen width
+    final containerPadding = isSmallScreen ? 15.0 : 20.0;
+
+    // Adjust heights based on screen size
+    final iconSize = size.width * 0.15 < 60 ? size.width * 0.15 : 60.0;
+    final spacingHeight = size.height * 0.03; // 3% of screen height
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // Background Image with dark overlay - sized to fit any screen
-          Container(
-            width: screenSize.width,
-            height: screenSize.height,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/back.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                width: screenSize.width,
-                height: screenSize.height,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.black.withOpacity(0.9),
-                    ],
-                  ),
-                ),
-              ),
+          // Background with dual colors
+          SizedBox(
+            width: size.width,
+            height: size.height,
+            child: CustomPaint(
+              painter: BackgroundPainter(),
             ),
           ),
 
+          // Green curve
+          SizedBox(
+            width: size.width,
+            height: size.height,
+            child: CustomPaint(
+              painter: CurvePainter(),
+            ),
+          ),
+
+          // Form content
           SafeArea(
-            child: Center(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: spacingHeight),
+
+                    // Bell icon and title
+                    Row(
                       children: [
-                        // Bell icon with shadow
                         Container(
+                          width: iconSize,
+                          height: iconSize,
                           decoration: BoxDecoration(
+                            color: const Color(0xFF4AC959).withOpacity(0.2),
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
+                          ),
+                          child: Icon(
+                            Icons.notifications_active,
+                            size: iconSize * 0.5,
+                            color: const Color(0xFF4AC959),
+                          ),
+                        ),
+                        SizedBox(width: size.width * 0.03),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Edit your task alerts',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: titleFontSize / 1.2,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'All alerts are on by default',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: subtitleFontSize / 2,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                          ),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.green,
-                            radius: 35,
-                            child: Icon(
-                              Icons.notifications_active,
-                              size: 35,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 18),
-
-                        // Title and description
-                        Text(
-                          'Edit your task alerts',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          width: screenSize.width * 0.7,
-                          child: Text(
-                            'All alerts are on by default',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade300,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 18),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                            child: Container(
-                              width: screenSize.width * 0.9,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.15),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.green.withOpacity(0.1),
-                                    blurRadius: 15,
-                                    spreadRadius: -5,
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  // All Categories toggle with improved styling
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 4),
-                                    child: SwitchListTile(
-                                      title: Row(
-                                        children: [
-                                          Icon(Icons.category,
-                                              color: Colors.green),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'All Categories',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      subtitle: Text(
-                                        'Toggle all task categories at once',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade400,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      value: allCategoriesEnabled,
-                                      onChanged: (value) =>
-                                          toggleAllCategories(),
-                                      activeColor: Colors.green,
-                                      contentPadding:
-                                          EdgeInsets.symmetric(horizontal: 8),
-                                    ),
-                                  ),
-                                  Divider(
-                                    height: 1,
-                                    color: Colors.grey.shade800,
-                                    thickness: 1,
-                                  ),
-
-                                  // Scrollable list of categories with improved styling
-                                  Container(
-                                    constraints: BoxConstraints(
-                                      maxHeight: screenSize.height * 0.4,
-                                    ),
-                                    child: ListView.separated(
-                                      shrinkWrap: true,
-                                      physics: BouncingScrollPhysics(),
-                                      itemCount: categories.length,
-                                      separatorBuilder: (context, index) =>
-                                          Divider(
-                                        height: 1,
-                                        color: Colors.grey.shade800
-                                            .withOpacity(0.5),
-                                        indent: 60,
-                                        endIndent: 20,
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        final category = categories[index];
-                                        return Padding(
-                                          padding:
-                                              EdgeInsets.symmetric(vertical: 2),
-                                          child: SwitchListTile(
-                                            title: Row(
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.all(8),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.green
-                                                        .withOpacity(0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                  child: Icon(
-                                                    category.icon,
-                                                    color: category.enabled
-                                                        ? Colors.green
-                                                        : Colors.grey,
-                                                    size: 20,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 12),
-                                                Text(
-                                                  category.name,
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: category.enabled
-                                                        ? FontWeight.w600
-                                                        : FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            value: category.enabled,
-                                            onChanged: (value) =>
-                                                toggleCategory(category.id),
-                                            activeColor: Colors.green,
-                                            inactiveTrackColor:
-                                                Colors.grey.shade800,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 16),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 30),
-
-                        // Save button with animation and gradient
-                        Container(
-                          width: screenSize.width * 0.9,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: anyCategoryEnabled
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.green.withOpacity(0.4),
-                                      blurRadius: 15,
-                                      offset: Offset(0, 5),
-                                      spreadRadius: -5,
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: anyCategoryEnabled ? saveSettings : null,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              backgroundColor: Colors.transparent,
-                              disabledForegroundColor:
-                                  Colors.grey.withOpacity(0.38),
-                              disabledBackgroundColor:
-                                  Colors.grey.shade800.withOpacity(0.3),
-                            ),
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: anyCategoryEnabled
-                                    ? LinearGradient(
-                                        colors: [
-                                          Colors.green.shade600,
-                                          Colors.green.shade400,
-                                        ],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                      )
-                                    : null,
-                                color: anyCategoryEnabled
-                                    ? null
-                                    : Colors.grey.shade800.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.save_alt,
-                                        color: anyCategoryEnabled
-                                            ? Colors.white
-                                            : Colors.grey),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Save Preferences',
-                                      style: TextStyle(
-                                        color: anyCategoryEnabled
-                                            ? Colors.white
-                                            : Colors.grey,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
+
+                    SizedBox(height: spacingHeight * 3),
+
+                    // Categories container
+                    Container(
+                      padding: EdgeInsets.all(containerPadding),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900]!.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.grey[800]!,
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // All Categories toggle
+                          SwitchListTile(
+                            title: Text(
+                              'All Categories',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16 / textScaleFactor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Toggle all task categories at once',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 12 / textScaleFactor,
+                              ),
+                            ),
+                            value: allCategoriesEnabled,
+                            onChanged: (value) => toggleAllCategories(),
+                            activeColor: const Color(0xFF4AC959),
+                            inactiveTrackColor: Colors.grey[800],
+                          ),
+                          Divider(
+                            height: 1,
+                            color: Colors.grey[800],
+                          ),
+
+                          // List of categories
+                          Container(
+                            constraints: BoxConstraints(
+                              maxHeight: size.height * 0.45,
+                            ),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              physics: BouncingScrollPhysics(),
+                              itemCount: categories.length,
+                              separatorBuilder: (context, index) => Divider(
+                                height: 1,
+                                color: Colors.grey[800],
+                                indent: 60,
+                                endIndent: 20,
+                              ),
+                              itemBuilder: (context, index) {
+                                final category = categories[index];
+                                return SwitchListTile(
+                                  title: Row(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF4AC959)
+                                              .withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          category.icon,
+                                          color: category.enabled
+                                              ? const Color(0xFF4AC959)
+                                              : Colors.grey,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        category.name,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14 / textScaleFactor,
+                                          fontWeight: category.enabled
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  value: category.enabled,
+                                  onChanged: (value) =>
+                                      toggleCategory(category.id),
+                                  activeColor: const Color(0xFF4AC959),
+                                  inactiveTrackColor: Colors.grey[800],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: spacingHeight * 0.8),
+
+                    // Save button
+                    Center(
+                      child: SizedBox(
+                        width: size.width * 0.7,
+                        height: size.height * 0.07,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4AC959),
+                            foregroundColor: Colors.white,
+                            elevation: anyCategoryEnabled ? 5 : 0,
+                            shadowColor: anyCategoryEnabled
+                                ? const Color(0xFF4AC959).withOpacity(0.5)
+                                : Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          onPressed: anyCategoryEnabled ? saveSettings : null,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Save Preferences',
+                                style: TextStyle(
+                                  fontSize: buttonFontSize / textScaleFactor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: size.width * 0.02),
+                              Icon(
+                                Icons.save_alt,
+                                size: buttonFontSize,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: spacingHeight),
+                  ],
                 ),
               ),
             ),
@@ -459,4 +398,95 @@ class _TaskAlertsPageState extends State<TaskAlertsPage>
       ),
     );
   }
+}
+
+// Background painter for dual colors
+class BackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Paint for grey area (above the line)
+    final greyPaint = Paint()
+      ..color = const Color(0xFF212121)
+      ..style = PaintingStyle.fill;
+
+    // Paint for black area (below the line)
+    final blackPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+
+    // Curve at 35% of the screen height
+    double curveHeight = size.height * 0.24;
+
+    // Path for the upper grey section
+    final greyPath = Path();
+    greyPath.moveTo(0, 0);
+    greyPath.lineTo(size.width, 0);
+    greyPath.lineTo(size.width, curveHeight);
+
+    // Create the curve that separates grey and black
+    greyPath.quadraticBezierTo(
+      size.width * 0.1,
+      curveHeight - size.height * 0.08,
+      0,
+      curveHeight - size.height * 0.05,
+    );
+
+    greyPath.close();
+
+    // Path for the lower black section
+    final blackPath = Path();
+    blackPath.moveTo(0, curveHeight - size.height * 0.05);
+    blackPath.quadraticBezierTo(
+      size.width * 0.1,
+      curveHeight - size.height * 0.13,
+      size.width,
+      curveHeight,
+    );
+    blackPath.lineTo(size.width, size.height);
+    blackPath.lineTo(0, size.height);
+    blackPath.close();
+
+    // Draw both sections
+    canvas.drawPath(greyPath, greyPaint);
+    canvas.drawPath(blackPath, blackPaint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+// Green curve painter
+class CurvePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF4AC959)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.01 > 5.0 ? 5.0 : size.width * 0.01
+      ..strokeCap = StrokeCap.round;
+
+    double curveHeight = size.height * 0.24;
+
+    final path = Path();
+    path.moveTo(0, curveHeight - size.height * 0.05);
+    path.quadraticBezierTo(
+      size.width * 0.1,
+      curveHeight - size.height * 0.13,
+      size.width,
+      curveHeight,
+    );
+
+    // Add a glow effect to the curve
+    final glowPaint = Paint()
+      ..color = const Color(0xFF4AC959).withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.02 > 10.0 ? 10.0 : size.width * 0.02
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5.0);
+
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
