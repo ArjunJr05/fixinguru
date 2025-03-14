@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:fixinguru/browse/broswer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,8 +23,41 @@ class BrowsePage extends StatefulWidget {
   _BrowsePageState createState() => _BrowsePageState();
 }
 
-class _BrowsePageState extends State<BrowsePage> {
+class _BrowsePageState extends State<BrowsePage>
+    with SingleTickerProviderStateMixin {
   String selectedCategory = "All";
+  late AnimationController _shakeController;
+  final Map<String, GlobalKey> _buttonKeys =
+      {}; // Changed to _buttonKeys for buttons only
+  String?
+      _currentlyShakingTaskId; // Track which task button is currently shaking
+
+  // Add animation controller for shake effect
+  @override
+  void initState() {
+    super.initState();
+    filteredTasks = List.from(allTasks);
+    _searchController.addListener(_onSearchChanged);
+
+    // Initialize the shake animation controller
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    // Initialize button keys for all tasks
+    for (var task in allTasks) {
+      _buttonKeys[task["id"]] = GlobalKey();
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _shakeController.dispose();
+    super.dispose();
+  }
 
   // Sample task data
   // In _BrowsePageState class, modify the allTasks list
@@ -115,20 +151,6 @@ class _BrowsePageState extends State<BrowsePage> {
     {"name": "Gardening", "emoji": "🌱"},
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    filteredTasks = List.from(allTasks);
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  @override
-  void dispose() {
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
-    super.dispose();
-  }
-
   void _onSearchChanged() {
     _filterTasks();
   }
@@ -168,9 +190,32 @@ class _BrowsePageState extends State<BrowsePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TaskDetailPage(task: task),
+        builder: (context) => TaskDetailsPage(task: task),
       ),
     );
+  }
+
+  // Modified method to create shake effect on the button only
+  void _shakeButton(String taskId) {
+    if (_buttonKeys.containsKey(taskId) &&
+        _buttonKeys[taskId]!.currentContext != null) {
+      // Provide haptic feedback to indicate the tap was received
+      HapticFeedback.mediumImpact();
+
+      // Set currently shaking task
+      setState(() {
+        _currentlyShakingTaskId = taskId;
+      });
+
+      // Reset the controller and start the animation
+      _shakeController.reset();
+      _shakeController.forward().then((_) {
+        // Clear the currently shaking task when animation completes
+        setState(() {
+          _currentlyShakingTaskId = null;
+        });
+      });
+    }
   }
 
   @override
@@ -242,7 +287,7 @@ class _BrowsePageState extends State<BrowsePage> {
               ),
             ),
 
-            // ADD THE SEARCH FIELD HERE - This is where you should insert the code
+            // Search field
             if (_isSearching)
               Padding(
                 padding: EdgeInsets.symmetric(
@@ -282,7 +327,6 @@ class _BrowsePageState extends State<BrowsePage> {
             SizedBox(
               height: isSmallScreen ? 90 : 100,
               child: ListView.builder(
-                // Rest of your existing code continues...
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(
                   horizontal: isSmallScreen ? 12.0 : 16.0,
@@ -436,10 +480,19 @@ class _BrowsePageState extends State<BrowsePage> {
     );
   }
 
-  // Updated task card with amount and View Detail button
+  // Updated task card to shake only the view details button
   Widget _buildTaskCard(Map<String, dynamic> task, bool isSmallScreen) {
-    String heroIdCard = "task_card_${task['id']}";
-    String heroIdIcon = "task_icon_${task['id']}";
+    // Create a shake animation for the button
+    final Animation<double> offsetAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.elasticIn,
+    ));
+
+    // Check if this specific task button is the one that should be shaking
+    final bool shouldShakeThisButton = _currentlyShakingTaskId == task["id"];
 
     return Card(
       color: AppColors.cardBackground,
@@ -449,7 +502,10 @@ class _BrowsePageState extends State<BrowsePage> {
       ),
       elevation: 0,
       child: InkWell(
-        onTap: () => widget.onTaskSelected(task),
+        onTap: () {
+          // Activate shake effect when the card is tapped
+          _shakeButton(task["id"]);
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: EdgeInsets.all(isSmallScreen ? 14 : 16),
@@ -567,27 +623,40 @@ class _BrowsePageState extends State<BrowsePage> {
                 ],
               ),
               SizedBox(height: 12),
-              // View Detail Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _navigateToTaskDetail(task),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: AppColors.primary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+              // View Detail Button with shake animation
+              AnimatedBuilder(
+                animation: offsetAnimation,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: shouldShakeThisButton
+                        ? Offset(
+                            sin(_shakeController.value * 10 * 3.14159) * 10, 0)
+                        : Offset.zero,
+                    child: child!,
+                  );
+                },
+                child: SizedBox(
+                  key: _buttonKeys[task["id"]],
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _navigateToTaskDetail(task),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isSmallScreen ? 8 : 10,
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: isSmallScreen ? 8 : 10,
-                    ),
-                  ),
-                  child: Text(
-                    "View Details",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: isSmallScreen ? 13 : 14,
+                    child: Text(
+                      "View Details",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: isSmallScreen ? 13 : 14,
+                      ),
                     ),
                   ),
                 ),
@@ -718,262 +787,6 @@ class _BrowsePageState extends State<BrowsePage> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-// Added TaskDetailPage
-class TaskDetailPage extends StatelessWidget {
-  final Map<String, dynamic> task;
-
-  const TaskDetailPage({Key? key, required this.task}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 360;
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "Task Details",
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Task header
-              Container(
-                padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: isSmallScreen ? 60 : 70,
-                          height: isSmallScreen ? 60 : 70,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: Text(
-                              task["icon"],
-                              style:
-                                  TextStyle(fontSize: isSmallScreen ? 28 : 32),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: isSmallScreen ? 16 : 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                task["title"],
-                                style: TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: isSmallScreen ? 20 : 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.primary.withOpacity(0.15),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      task["time"],
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontSize: isSmallScreen ? 12 : 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.grey.shade800.withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      task["category"] ?? "General",
-                                      style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: isSmallScreen ? 12 : 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isSmallScreen ? 16 : 24),
-                    Divider(color: AppColors.divider, thickness: 1),
-                    SizedBox(height: isSmallScreen ? 16 : 20),
-                    // Amount and location
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Price",
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: isSmallScreen ? 14 : 16,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              task["amount"],
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: isSmallScreen ? 18 : 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "Location",
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: isSmallScreen ? 14 : 16,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              task["description"].split("|")[1].trim(),
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: isSmallScreen ? 16 : 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: isSmallScreen ? 20 : 24),
-
-              // Task description
-              Text(
-                "Schedule",
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: isSmallScreen ? 18 : 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: isSmallScreen ? 12 : 16),
-              Container(
-                padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_rounded,
-                      color: AppColors.primary,
-                      size: isSmallScreen ? 22 : 24,
-                    ),
-                    SizedBox(width: 12),
-                    Text(
-                      task["description"].split("|")[0].trim(),
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: isSmallScreen ? 15 : 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: isSmallScreen ? 24 : 32),
-
-              // Apply for task button
-              ElevatedButton(
-                onPressed: () {
-                  // Action for applying to the task
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Applied for task: ${task['title']}"),
-                      backgroundColor: AppColors.primary,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: AppColors.primary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  minimumSize: const Size(double.infinity, 56),
-                ),
-                child: Text(
-                  "Apply for Task",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: isSmallScreen ? 16 : 18,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
