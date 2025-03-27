@@ -1,8 +1,6 @@
 import 'package:fixinguru/front/first.dart';
-import 'package:fixinguru/home/homepage.dart';
+import 'package:fixinguru/home/create.dart';
 import 'package:fixinguru/home/mainpage.dart';
-import 'package:fixinguru/login/loginpage.dart';
-import 'package:fixinguru/login/task.dart';
 import 'package:flutter/material.dart';
 
 void main() {

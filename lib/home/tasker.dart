@@ -1,5 +1,6 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:fixinguru/home/create.dart';
 import 'package:flutter/material.dart';
 
 class Tasker extends StatefulWidget {
@@ -293,7 +294,10 @@ class _TaskerState extends State<Tasker> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Implement new task creation
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => CreateTaskPage()),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,

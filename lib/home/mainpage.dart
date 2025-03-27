@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:fixinguru/browse/broswer.dart';
 import 'package:fixinguru/browse/broswer2.dart';
+import 'package:fixinguru/browse/payment.dart';
 import 'package:fixinguru/front/logout.dart';
 import 'package:fixinguru/home/homepage.dart';
 import 'package:fixinguru/home/notification.dart';
@@ -98,6 +99,7 @@ class _MainPageState extends State<MainPage>
       extendBody: true,
 
       // App Bar
+      // In the _MainPageState class, update the build method's AppBar actions
       appBar: AppBar(
         backgroundColor: const Color(0xFF4AC959),
         title: Text(
@@ -120,15 +122,25 @@ class _MainPageState extends State<MainPage>
         actions: [
           IconButton(
             icon: const Icon(
+              Icons.payment,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PaymentPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(
               Icons.person_outline,
               color: Colors.white,
             ),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        ChatPage()), // Replace with your profile page
+                MaterialPageRoute(builder: (context) => ChatPage()),
               );
             },
           )
