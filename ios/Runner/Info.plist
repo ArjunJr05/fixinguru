@@ -60,5 +60,11 @@
 		<string>mailto</string>
 		<string>sms</string>
 	</array>
+	
+	<!-- Added microphone and speech recognition permissions -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record voice for task descriptions</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to convert your speech to text</string>
 </dict>
 </plist>

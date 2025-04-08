@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   // Controllers for the form fields
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isFormValid = false;
   bool _obscurePassword = true;
@@ -21,14 +21,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     // Add listeners to controllers to check form validity
-    _emailController.addListener(_checkFormValidity);
+    _phoneController.addListener(_checkFormValidity);
     _passwordController.addListener(_checkFormValidity);
   }
 
   @override
   void dispose() {
     // Clean up controllers
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // Check if all fields are filled
   void _checkFormValidity() {
     setState(() {
-      _isFormValid = _emailController.text.isNotEmpty &&
+      _isFormValid = _phoneController.text.isNotEmpty &&
           _passwordController.text.isNotEmpty;
     });
   }
@@ -139,14 +139,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Email field
+                                // phone field
                                 _buildInputField(
                                   context: context,
-                                  label: 'Email Address',
-                                  hintText: 'Enter your email address',
-                                  controller: _emailController,
-                                  icon: Icons.email_outlined,
-                                  keyboardType: TextInputType.emailAddress,
+                                  label: 'Phone Number',
+                                  hintText: 'Enter your phone number',
+                                  controller: _phoneController,
+                                  icon: Icons.phone_outlined,
+                                  keyboardType: TextInputType.phone,
                                   labelFontSize: labelFontSize,
                                   hintFontSize: hintFontSize,
                                   iconSize: iconSize,

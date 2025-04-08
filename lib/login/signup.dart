@@ -1,3 +1,4 @@
+import 'package:fixinguru/login/otp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
@@ -12,25 +13,25 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   // Controllers for the form fields
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool acceptTerms = false;
   bool receiveUpdates = false;
 
-  // Function to check if both boxes are ticked and email is entered
+  // Function to check if both boxes are ticked and phone is entered
   bool get canContinue =>
-      acceptTerms && receiveUpdates && _emailController.text.isNotEmpty;
+      acceptTerms && receiveUpdates && _phoneController.text.isNotEmpty;
 
   @override
   void initState() {
     super.initState();
     // Add listeners to controllers to check form validity
-    _emailController.addListener(_checkFormValidity);
+    _phoneController.addListener(_checkFormValidity);
   }
 
   @override
   void dispose() {
     // Clean up controller
-    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -137,14 +138,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                           SizedBox(height: spacingHeight * 5),
 
-                          // Email field with responsive sizing
+                          // phone field with responsive sizing
                           _buildInputField(
                             context: context,
-                            label: 'Email Address',
-                            hintText: 'Enter your email address',
-                            controller: _emailController,
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
+                            label: 'Phone Number',
+                            hintText: 'Enter your phone number',
+                            controller: _phoneController,
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
                             labelFontSize: labelFontSize,
                             hintFontSize: hintFontSize,
                             iconSize: iconSize,
@@ -243,8 +244,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) =>
-                                                const PasswordPage(),
+            builder: (context) => OtpVerificationScreen(
+              phoneNumber: _phoneController.text,
+            ),
                                           ),
                                         );
                                       }
