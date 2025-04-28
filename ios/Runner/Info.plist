@@ -52,11 +52,19 @@
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app uses speech recognition to convert your speech to text</string>
 	
-	<!-- File storage and document permissions -->
+	<!-- Storage permissions -->
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>This app requires access to the documents folder to save and read files</string>
 	<key>NSDownloadsFolderUsageDescription</key>
 	<string>This app requires access to the downloads folder to save and read files</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>NSFileProviderPresenceUsageDescription</key>
+	<string>This app needs to access files for saving and reading user data</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>This app requires access to file storage to save your data</string>
 	
 	<!-- Share and photo library permissions -->
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -76,15 +84,5 @@
 		<string>file</string>
 		<string>content</string>
 	</array>
-	
-	<!-- File sharing support -->
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	
-	<!-- Text to speech permission -->
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app needs to recognize speech for voice to text functionality</string>
 </dict>
 </plist>
