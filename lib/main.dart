@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
           bodySmall: TextStyle(color: Colors.white),
         ),
       ),
-      home: SplashScreen(),
+      home: LoginScreen(),
     );
   }
 }

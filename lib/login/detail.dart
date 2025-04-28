@@ -13,7 +13,6 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  // Controllers for the form fields
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _locationController = TextEditingController();
@@ -23,7 +22,6 @@ class _DetailPageState extends State<DetailPage> {
   @override
   void initState() {
     super.initState();
-    // Add listeners to all controllers to check form validity
     _firstNameController.addListener(_checkFormValidity);
     _lastNameController.addListener(_checkFormValidity);
     _locationController.addListener(_checkFormValidity);

@@ -46,11 +46,25 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	
-	<!-- Add these keys for share_plus and url_launcher functionality -->
+	<!-- Microphone and Speech Recognition permissions -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record voice for task descriptions</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to convert your speech to text</string>
+	
+	<!-- File storage and document permissions -->
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>This app requires access to the documents folder to save and read files</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>This app requires access to the downloads folder to save and read files</string>
+	
+	<!-- Share and photo library permissions -->
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library for sharing images.</string>
+	<string>This app requires access to the photo library for sharing images</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app requires permission to save images to your photo library.</string>
+	<string>This app requires permission to save images to your photo library</string>
+	
+	<!-- URL schemes for external app communication -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>
@@ -59,12 +73,18 @@
 		<string>tel</string>
 		<string>mailto</string>
 		<string>sms</string>
+		<string>file</string>
+		<string>content</string>
 	</array>
 	
-	<!-- Added microphone and speech recognition permissions -->
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs microphone access to record voice for task descriptions</string>
+	<!-- File sharing support -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	
+	<!-- Text to speech permission -->
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app uses speech recognition to convert your speech to text</string>
+	<string>This app needs to recognize speech for voice to text functionality</string>
 </dict>
 </plist>
