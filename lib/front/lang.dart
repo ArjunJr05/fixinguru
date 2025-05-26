@@ -195,7 +195,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => LoginScreen(),
+                                            builder: (context) => const LoginScreen(),
                                           ),
                                         );
                                       }

@@ -349,7 +349,7 @@ class _PasswordPageState extends State<PasswordPage> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => DetailPage(),
+                                            builder: (context) => const DetailPage(),
                                           ),
                                         );
                                       }
@@ -405,7 +405,7 @@ class _PasswordPageState extends State<PasswordPage> {
           color: isMet ? const Color(0xFF4AC959) : Colors.red,
           size: iconSize,
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,

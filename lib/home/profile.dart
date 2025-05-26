@@ -1,76 +1,43 @@
-// ignore_for_file: prefer_const_constructors
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fixinguru/front/logout.dart';
 import 'package:fixinguru/login/loginpage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Stats for the profile page
+  // Firestore instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // User data variables
+  String? _phoneNumber;
+  String _firstName = '';
+  String _lastName = '';
+  String _location = '';
+  String _about = '';
+  String _createdDay = '';
+  List<String> _skills = [];
+
+  // Stats
   final Map<String, int> taskerStats = {
-    'Completed': 12,
-    'Rating': 4, // Out of 5
-    'Earnings': 850, // In dollars
+    'Completed': 0,
+    'Rating': 0,
+    'Earnings': 0,
   };
 
   final Map<String, int> clientStats = {
-    'Posted': 6,
-    'Completed': 3,
-    'Bookmarked': 4,
+    'Posted': 0,
+    'Completed': 0,
+    'Bookmarked': 0,
   };
 
-  // Profile information
-  final String userName = "Alex Johnson";
-  final String userBio =
-      "Professional handyman with 5+ years of experience. Specializing in furniture assembly, home repairs, and moving assistance.";
-  final String userLocation = "San Francisco, CA";
-  final String memberSince = "May 2023";
-
-  // Skills list
-  final List<String> skills = [
-    "Furniture Assembly",
-    "Moving",
-    "Home Repairs",
-    "Painting",
-    "Cleaning",
-    "Gardening",
-  ];
-
-  // Reviews list for the profile
-  final List<ReviewItem> reviews = [
-    ReviewItem(
-      name: "Sarah M.",
-      date: "2 weeks ago",
-      rating: 5,
-      comment:
-          "Alex was extremely professional and assembled my IKEA furniture quickly. Would hire again!",
-      taskName: "Furniture Assembly",
-    ),
-    ReviewItem(
-      name: "Michael T.",
-      date: "1 month ago",
-      rating: 4,
-      comment:
-          "Great job helping me move. Was on time and very careful with my belongings.",
-      taskName: "Moving Assistance",
-    ),
-    ReviewItem(
-      name: "Jennifer L.",
-      date: "2 months ago",
-      rating: 5,
-      comment:
-          "Fixed my leaky faucet and even gave me tips on preventing future issues. Very knowledgeable!",
-      taskName: "Home Repairs",
-    ),
-  ];
-
-  // Color scheme matching the existing app
+  // Color scheme
   final primaryColor = const Color(0xFF4CD964);
   final backgroundColor = Colors.black;
   final cardColor = Color(0xFF121212);
@@ -79,85 +46,221 @@ class _ProfilePageState extends State<ProfilePage> {
 
   bool isEditingMode = false;
   bool isTaskerView = true;
+  bool _isLoading = true;
+
+  // Controllers for editable fields
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _aboutController = TextEditingController();
+  final TextEditingController _newSkillController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    // Use MediaQuery to make the UI responsive
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenWidth < 360;
-    final horizontalPadding = screenWidth * 0.05;
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Main content
-            Expanded(
-              child: RefreshIndicator(
-                color: primaryColor,
-                backgroundColor: cardColor,
-                onRefresh: () async {
-                  await Future.delayed(Duration(seconds: 1));
-                },
-                child: ListView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  children: [
-                    SizedBox(height: screenHeight * 0.02),
-
-                    // Profile header with avatar, name, edit button
-                    _buildProfileHeader(context),
-
-                    SizedBox(height: screenHeight * 0.025),
-
-                    // Bio section
-                    _buildBioSection(context),
-
-                    SizedBox(height: screenHeight * 0.025),
-
-                    // Stats overview
-                    _buildStatsOverview(context),
-
-                    SizedBox(height: screenHeight * 0.025),
-
-                    // Skills section (only for tasker view)
-                    if (isTaskerView) _buildSkillsSection(context),
-
-                    if (isTaskerView) SizedBox(height: screenHeight * 0.025),
-
-                    // Reviews section (only for tasker view)
-                    if (isTaskerView) _buildReviewsSection(context),
-
-                    // Task history (only for client view)
-                    if (!isTaskerView) _buildTaskHistorySection(context),
-
-                    SizedBox(height: screenHeight * 0.025),
-
-                    // Account settings section
-                    _buildAccountSettingsSection(context),
-
-                    SizedBox(height: screenHeight * 0.08),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _loadUserData();
   }
 
-  // Profile header with avatar, name, and edit button
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _locationController.dispose();
+    _aboutController.dispose();
+    _newSkillController.dispose();
+    _emailController.dispose(); // Add this line
+    super.dispose();
+  }
+
+  // Add this variable with your other user data variables
+  String _email = '';
+
+// Update the _loadUserData method to fetch email
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get phone number from shared preferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      _phoneNumber = prefs.getString('phoneNumber');
+
+      if (_phoneNumber != null) {
+        // Fetch user document
+        DocumentSnapshot userDoc =
+            await _firestore.collection('users').doc(_phoneNumber).get();
+
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+
+          // Set user data including email
+          setState(() {
+            _firstName = userData['first_name'] ?? '';
+            _lastName = userData['last_name'] ?? '';
+            _location = userData['location'] ?? '';
+            _about = userData['about'] ?? '';
+            _createdDay = userData['created_day'] ?? '';
+            _email = userData['email'] ?? '';
+
+            // Initialize controllers
+            _firstNameController.text = _firstName;
+            _lastNameController.text = _lastName;
+            _locationController.text = _location;
+            _aboutController.text = _about;
+            _emailController.text = _email; // Add this line
+          });
+
+          // Fetch skills document
+          DocumentSnapshot skillsDoc =
+              await _firestore.collection('skill').doc(_phoneNumber).get();
+
+          List<String> skillsList = [];
+          if (skillsDoc.exists) {
+            Map<String, dynamic> skillsData =
+                skillsDoc.data() as Map<String, dynamic>;
+
+            // Extract all string values that aren't metadata fields
+            skillsData.forEach((key, value) {
+              if (value is String &&
+                  key != 'about' &&
+                  key != 'created_day' &&
+                  key != 'email' &&
+                  key != 'first_name' &&
+                  key != 'last_name' &&
+                  key != 'location' &&
+                  key != 'password') {
+                skillsList.add(value);
+              }
+            });
+          }
+
+          setState(() {
+            _skills = skillsList;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveProfileChanges() async {
+    if (_phoneNumber == null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Update user document
+      await _firestore.collection('users').doc(_phoneNumber).update({
+        'first_name': _firstNameController.text,
+        'last_name': _lastNameController.text,
+        'location': _locationController.text,
+        'about': _aboutController.text,
+        'email': _emailController.text, // Add this line to update email
+      });
+
+      // Create a map for skills where each skill is a separate field
+      Map<String, dynamic> skillsMap = {};
+      for (int i = 0; i < _skills.length; i++) {
+        skillsMap['skill_${i + 1}'] = _skills[i];
+      }
+
+      // Update the skills document
+      await _firestore.collection('skill').doc(_phoneNumber).set({
+        ...skillsMap,
+        'about': _aboutController.text,
+        'created_day': _createdDay,
+        'first_name': _firstNameController.text,
+        'last_name': _lastNameController.text,
+        'location': _locationController.text,
+      }, SetOptions(merge: true));
+
+      // Refresh data
+      await _loadUserData();
+
+      setState(() {
+        isEditingMode = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 24),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Profile updated successfully!',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: primaryColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          duration: Duration(seconds: 3),
+          elevation: 6,
+        ),
+      );
+    } catch (e) {
+      print('Error saving profile: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update profile'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _addSkill() {
+    if (_newSkillController.text.trim().isNotEmpty) {
+      setState(() {
+        _skills.add(_newSkillController.text.trim());
+        _newSkillController.clear();
+      });
+    }
+  }
+
+  void _removeSkill(int index) {
+    setState(() {
+      _skills.removeAt(index);
+    });
+  }
+
   Widget _buildProfileHeader(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
 
+    // Get first letter of first name for avatar
+    String avatarText =
+        _firstName.isNotEmpty ? _firstName[0].toUpperCase() : '?';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Avatar
+        // Avatar with first letter
         Hero(
           tag: 'profile-avatar',
           child: Container(
@@ -167,13 +270,15 @@ class _ProfilePageState extends State<ProfilePage> {
               shape: BoxShape.circle,
               color: primaryColor.withOpacity(0.2),
               border: Border.all(color: primaryColor, width: 2),
-              image: DecorationImage(
-                image: AssetImage('assets/images/ganesh2.jpg'),
-                fit: BoxFit.cover,
-                // Use a placeholder here, in a real app you would use user's image
-                onError: (exception, stackTrace) {
-                  // Fallback for when the image is not available
-                },
+            ),
+            child: Center(
+              child: Text(
+                avatarText,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 40 : 50,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
+                ),
               ),
             ),
           ),
@@ -184,36 +289,65 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Name section
               isEditingMode
-                  ? TextField(
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: isSmallScreen ? 20 : 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                        filled: true,
-                        fillColor: cardColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: primaryColor),
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextField(
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: isSmallScreen ? 20 : 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            filled: true,
+                            fillColor: cardColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: primaryColor),
+                            ),
+                            hintText: "First Name",
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
+                          controller: _firstNameController,
                         ),
-                        hintText: "Your Name",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                      controller: TextEditingController(text: userName),
+                        SizedBox(height: 4),
+                        TextField(
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: isSmallScreen ? 20 : 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            filled: true,
+                            fillColor: cardColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: primaryColor),
+                            ),
+                            hintText: "Last Name",
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
+                          controller: _lastNameController,
+                        ),
+                      ],
                     )
                   : Text(
-                      userName,
+                      '$_firstName $_lastName',
                       style: TextStyle(
                         color: textColor,
                         fontSize: isSmallScreen ? 12 : 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
               SizedBox(height: 4),
+              // Location
               Row(
                 children: [
                   Icon(
@@ -222,16 +356,104 @@ class _ProfilePageState extends State<ProfilePage> {
                     size: 14,
                   ),
                   SizedBox(width: 4),
-                  Text(
-                    userLocation,
-                    style: TextStyle(
-                      color: secondaryTextColor,
-                      fontSize: isSmallScreen ? 10 : 12,
-                    ),
-                  ),
+                  isEditingMode
+                      ? Expanded(
+                          child: TextField(
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: isSmallScreen ? 10 : 12,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              filled: true,
+                              fillColor: cardColor,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: BorderSide(color: primaryColor),
+                              ),
+                              hintText: "Location",
+                              hintStyle: TextStyle(color: Colors.grey),
+                            ),
+                            controller: _locationController,
+                          ),
+                        )
+                      : Text(
+                          _location,
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontSize: isSmallScreen ? 10 : 12,
+                          ),
+                        ),
                 ],
               ),
               SizedBox(height: 4),
+              // Phone Number
+              if (_phoneNumber != null && _phoneNumber!.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(
+                      Icons.phone,
+                      color: secondaryTextColor,
+                      size: 14,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      "+91-" + _phoneNumber!,
+                      style: TextStyle(
+                        color: secondaryTextColor,
+                        fontSize: isSmallScreen ? 10 : 12,
+                      ),
+                    ),
+                  ],
+                ),
+              SizedBox(height: 4),
+              // Email
+              // Email
+              Row(
+                children: [
+                  Icon(
+                    Icons.email,
+                    color: secondaryTextColor,
+                    size: 14,
+                  ),
+                  SizedBox(width: 4),
+                  isEditingMode
+                      ? Expanded(
+                          child: TextField(
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: isSmallScreen ? 10 : 12,
+                            ),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 8),
+                              filled: true,
+                              fillColor: cardColor,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4),
+                                borderSide: BorderSide(color: primaryColor),
+                              ),
+                              hintText: "Email",
+                              hintStyle: TextStyle(color: Colors.grey),
+                            ),
+                            controller: TextEditingController(
+                                text: _email), // Add this controller
+                          ),
+                        )
+                      : Text(
+                          _email.isNotEmpty
+                              ? _email
+                              : "No email provided", // Use the _email variable
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontSize: isSmallScreen ? 10 : 12,
+                          ),
+                        ),
+                ],
+              ),
+              SizedBox(height: 4),
+              // Member since
               Row(
                 children: [
                   Icon(
@@ -241,7 +463,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(width: 4),
                   Text(
-                    "Member since $memberSince",
+                    "Member since $_createdDay",
                     style: TextStyle(
                       color: secondaryTextColor,
                       fontSize: isSmallScreen ? 10 : 12,
@@ -252,12 +474,16 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-        // Edit button
+        // Edit/Save button
         IconButton(
           onPressed: () {
-            setState(() {
-              isEditingMode = !isEditingMode;
-            });
+            if (isEditingMode) {
+              _saveProfileChanges();
+            } else {
+              setState(() {
+                isEditingMode = true;
+              });
+            }
           },
           icon: Icon(
             isEditingMode ? Icons.check : Icons.edit,
@@ -269,7 +495,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Bio section
   Widget _buildBioSection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
@@ -278,12 +503,12 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4,
             offset: Offset(0, 2),
-          ),
+          )
         ],
       ),
       child: Column(
@@ -317,21 +542,238 @@ class _ProfilePageState extends State<ProfilePage> {
                     hintText: "Tell others about yourself...",
                     hintStyle: TextStyle(color: Colors.grey),
                   ),
-                  controller: TextEditingController(text: userBio),
+                  controller: _aboutController,
                 )
-              : Text(
-                  userBio,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: isSmallScreen ? 13 : 14,
+              : _about.isEmpty
+                  ? Text(
+                      "No about added yet",
+                      style: TextStyle(
+                        color: secondaryTextColor,
+                        fontSize: isSmallScreen ? 13 : 14,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    )
+                  : Text(
+                      _about,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: isSmallScreen ? 13 : 14,
+                      ),
+                    ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkillsSection(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 360;
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Skills",
+                style: TextStyle(
+                  color: primaryColor,
+                  fontSize: isSmallScreen ? 16 : 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isEditingMode)
+                TextButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: cardColor,
+                        title: Text(
+                          "Add Skill",
+                          style: TextStyle(color: primaryColor),
+                        ),
+                        content: TextField(
+                          controller: _newSkillController,
+                          style: TextStyle(color: textColor),
+                          decoration: InputDecoration(
+                            hintText: "Enter new skill",
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                            ),
+                            onPressed: () {
+                              _addSkill();
+                              Navigator.pop(context);
+                            },
+                            child: Text("Add",
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.add,
+                    color: primaryColor,
+                    size: 16,
                   ),
+                  label: Text(
+                    "Add",
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12),
+          _skills.isEmpty && !isEditingMode
+              ? Text(
+                  "No skills added yet",
+                  style: TextStyle(
+                    color: secondaryTextColor,
+                    fontSize: isSmallScreen ? 12 : 14,
+                  ),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _skills.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    String skill = entry.value;
+                    return Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: primaryColor.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            skill,
+                            style: TextStyle(
+                              color: primaryColor,
+                              fontSize: isSmallScreen ? 12 : 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (isEditingMode) ...[
+                            SizedBox(width: 4),
+                            InkWell(
+                              onTap: () => _removeSkill(index),
+                              child: Icon(
+                                Icons.close,
+                                color: primaryColor,
+                                size: 16,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
         ],
       ),
     );
   }
 
-  // Stats overview section
+  // Other existing methods (_buildStatsOverview, _buildReviewsSection, etc.) remain the same
+  // Just replace the hardcoded values with your variables
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: primaryColor,
+          ),
+        ),
+      );
+    }
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final horizontalPadding = screenWidth * 0.05;
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Main content
+            Expanded(
+              child: RefreshIndicator(
+                color: primaryColor,
+                backgroundColor: cardColor,
+                onRefresh: _loadUserData,
+                child: ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  children: [
+                    SizedBox(height: screenHeight * 0.02),
+                    _buildProfileHeader(context),
+                    SizedBox(height: screenHeight * 0.025),
+                    _buildBioSection(context),
+                    SizedBox(height: screenHeight * 0.025),
+                    _buildStatsOverview(context),
+                    SizedBox(height: screenHeight * 0.025),
+                    if (isTaskerView) _buildSkillsSection(context),
+                    if (isTaskerView) SizedBox(height: screenHeight * 0.025),
+                    if (isTaskerView) _buildReviewsSection(context),
+                    if (!isTaskerView) _buildTaskHistorySection(context),
+                    SizedBox(height: screenHeight * 0.025),
+                    _buildAccountSettingsSection(context),
+                    SizedBox(height: screenHeight * 0.08),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // The rest of your existing widget methods (_buildStatsOverview, _buildReviewsSection, etc.)
+  // should remain the same, just make sure to replace any hardcoded values with your variables
+  // For brevity, I'm not including them all here, but they should be in your original code
+
   Widget _buildStatsOverview(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
@@ -345,7 +787,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (isTaskerView) {
       statCards = [
         _buildStatCard(
-          'Tasks Completed',
+          'Resolved',
           stats['Completed'].toString(),
           Icons.check_circle,
           Colors.purple.withOpacity(0.2),
@@ -412,116 +854,26 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Skills section (for tasker view)
-  Widget _buildSkillsSection(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 360;
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Skills",
-                style: TextStyle(
-                  color: primaryColor,
-                  fontSize: isSmallScreen ? 16 : 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (isEditingMode)
-                TextButton.icon(
-                  onPressed: () {
-                    // Add skill functionality
-                  },
-                  icon: Icon(
-                    Icons.add,
-                    color: primaryColor,
-                    size: 16,
-                  ),
-                  label: Text(
-                    "Add",
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: skills.map((skill) {
-              return Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: primaryColor.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      skill,
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontSize: isSmallScreen ? 12 : 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (isEditingMode) ...[
-                      SizedBox(width: 4),
-                      InkWell(
-                        onTap: () {
-                          // Remove skill functionality
-                        },
-                        child: Icon(
-                          Icons.close,
-                          color: primaryColor,
-                          size: 16,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Reviews section (for tasker view)
   Widget _buildReviewsSection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
+    // Sample reviews - in a real app, you'd fetch these from Firestore
+    final List<ReviewItem> reviews = [
+      ReviewItem(
+        name: "Sarah M.",
+        date: "2 weeks ago",
+        rating: 5,
+        comment: "Great work!",
+        taskName: "Furniture Assembly",
+      ),
+    ];
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4,
@@ -561,15 +913,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           SizedBox(height: 12),
-          ...reviews
-              .map((review) => _buildReviewItem(review, context))
-              .toList(),
+          ...reviews.map((review) => _buildReviewItem(review, context)),
         ],
       ),
     );
   }
 
-  // Review item
   Widget _buildReviewItem(ReviewItem review, BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
@@ -645,31 +994,16 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Task history section (for client view)
   Widget _buildTaskHistorySection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
-    // Sample task history
+    // Sample task history - in a real app, fetch from Firestore
     final List<TaskItem> taskHistory = [
       TaskItem(
         name: "Furniture Assembly",
         icon: Icons.chair,
         color: Colors.blue,
         date: "2 weeks ago",
-        status: "Completed",
-      ),
-      TaskItem(
-        name: "House Cleaning",
-        icon: Icons.cleaning_services,
-        color: Colors.orange,
-        date: "1 month ago",
-        status: "Completed",
-      ),
-      TaskItem(
-        name: "Garden Maintenance",
-        icon: Icons.grass,
-        color: Colors.green,
-        date: "2 months ago",
         status: "Completed",
       ),
     ];
@@ -679,7 +1013,7 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4,
@@ -719,15 +1053,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           SizedBox(height: 12),
-          ...taskHistory
-              .map((task) => _buildTaskHistoryItem(task, context))
-              .toList(),
+          ...taskHistory.map((task) => _buildTaskHistoryItem(task, context)),
         ],
       ),
     );
   }
 
-  // Task history item
   Widget _buildTaskHistoryItem(TaskItem task, BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
@@ -757,8 +1088,8 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           CircleAvatar(
             backgroundColor: task.color.withOpacity(0.2),
-            child: Icon(task.icon, color: task.color),
             radius: isSmallScreen ? 18 : 20,
+            child: Icon(task.icon, color: task.color),
           ),
           SizedBox(width: 12),
           Expanded(
@@ -804,7 +1135,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Account settings section
   Widget _buildAccountSettingsSection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
@@ -846,7 +1176,7 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4,
@@ -905,13 +1235,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     size: isSmallScreen ? 14 : 16,
                   ),
                   onTap: () {
-                    // Handle navigation for each item
                     if (item['title'] == 'Log Out') {
-                      // Show the logout confirmation dialog
                       _showLogoutConfirmationDialog(context);
-                    } else {
-                      // Navigate to other settings pages
-                      // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => SomePage()));
                     }
                   },
                 ),
@@ -923,14 +1248,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
   }
 
-  // Stats card from the existing app (reused)
-  // Stats card from the existing app (reused)
   Widget _buildStatCard(
     String title,
     String count,
@@ -947,7 +1270,7 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 4,
@@ -992,6 +1315,32 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => LogoutConfirmationDialog(
+        onConfirmLogout: () {
+          Navigator.of(context).pop();
+          _performLogout(context);
+        },
+      ),
+    );
+  }
+
+  void _performLogout(BuildContext context) async {
+    // Clear user session
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('phoneNumber');
+    await prefs.setBool('isLoggedIn', false);
+
+    // Navigate to login screen
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false,
+    );
+  }
 }
 
 class ReviewItem {
@@ -1024,30 +1373,4 @@ class TaskItem {
     required this.date,
     required this.status,
   });
-}
-
-void _showLogoutConfirmationDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) => LogoutConfirmationDialog(
-      onConfirmLogout: () {
-        // Perform logout logic here
-        Navigator.of(context).pop(); // Close the dialog
-        _performLogout(context); // Call the logout function
-      },
-    ),
-  );
-}
-
-void _performLogout(BuildContext context) {
-  // Clear user session or perform any logout logic here
-  // Example: Clear user data, reset state, etc.
-
-  // Navigate to the login screen or home screen
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(
-        builder: (context) => LoginScreen()), // Replace with your login screen
-    (Route<dynamic> route) => false, // Remove all routes from the stack
-  );
 }

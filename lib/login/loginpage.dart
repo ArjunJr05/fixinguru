@@ -1,7 +1,11 @@
+import 'package:fixinguru/home/homepage.dart';
+import 'package:fixinguru/home/mainpage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:fixinguru/login/signup.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isFormValid = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -39,6 +44,122 @@ class _LoginScreenState extends State<LoginScreen> {
       _isFormValid = _phoneController.text.isNotEmpty &&
           _passwordController.text.isNotEmpty;
     });
+  }
+
+  // Save login state to SharedPreferences
+  Future<void> _saveLoginState(String phoneNumber) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    await prefs.setString('phoneNumber', phoneNumber);
+  }
+
+  // Login function to authenticate with Firestore
+  Future<void> _login() async {
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      String phoneNumber = _phoneController.text.trim();
+      String password = _passwordController.text.trim();
+
+      // Add timeout and better error handling
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(phoneNumber)
+          .get()
+          .timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception(
+              'Connection timeout. Please check your internet connection.');
+        },
+      );
+
+      if (userDoc.exists) {
+        // Get user data
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+
+        // Check if password field exists and matches
+        if (userData.containsKey('password')) {
+          String storedPassword = userData['password'].toString();
+
+          if (storedPassword == password) {
+            // Login successful - Save login state
+            await _saveLoginState(phoneNumber);
+            
+            HapticFeedback.mediumImpact();
+
+            // Navigate to main page
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MainPage(),
+                ),
+              );
+            }
+          } else {
+            // Wrong password
+            _showErrorDialog('Invalid password. Please try again.');
+          }
+        } else {
+          // Password field doesn't exist in document
+          _showErrorDialog('User data is incomplete. Please contact support.');
+        }
+      } else {
+        // User not found
+        _showErrorDialog('Phone number not registered. Please sign up first.');
+      }
+    } on Exception catch (e) {
+      // Handle timeout and other exceptions
+      String errorMessage = e.toString();
+      if (errorMessage.contains('timeout') ||
+          errorMessage.contains('Connection timeout')) {
+        _showErrorDialog(
+            'Connection timeout. Please check your internet connection and try again.');
+      }
+      print('Login error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Show error dialog
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text(
+            'Login Failed',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            message,
+            style: TextStyle(color: Colors.grey[300]),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Color(0xFF4AC959)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -139,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // phone field
+                                // Phone number field
                                 _buildInputField(
                                   context: context,
                                   label: 'Phone Number',
@@ -150,6 +271,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   labelFontSize: labelFontSize,
                                   hintFontSize: hintFontSize,
                                   iconSize: iconSize,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(15),
+                                  ],
                                 ),
 
                                 SizedBox(height: spacingHeight * 1.5),
@@ -186,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           SizedBox(height: spacingHeight * 0.8),
 
-                          // Continue button with responsive sizing
+                          // Continue button with responsive sizing and loading state
                           Center(
                             child: SizedBox(
                               width: min(size.width * 0.8, 320),
@@ -204,28 +329,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                                onPressed: _isFormValid
-                                    ? () {
-                                        // Add haptic feedback
-                                        HapticFeedback.mediumImpact();
-                                        // Login logic here
-                                      }
-                                    : null,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Text(
-                                      'Continue',
-                                      style: TextStyle(
-                                        fontSize:
-                                            buttonFontSize / textScaleFactor,
-                                        fontWeight: FontWeight.bold,
+                                onPressed:
+                                    _isFormValid && !_isLoading ? _login : null,
+                                child: _isLoading
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                            Colors.white,
+                                          ),
+                                        ),
+                                      )
+                                    : FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Text(
+                                            'Continue',
+                                            style: TextStyle(
+                                              fontSize: buttonFontSize /
+                                                  textScaleFactor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
                               ),
                             ),
                           ),
@@ -233,7 +365,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(height: spacingHeight * 0.8),
 
                           // OR LOG IN WITH - with FittedBox for better text scaling
-                          Row(
+                          const Row(
                             children: [
                               Expanded(
                                 child: Divider(
@@ -314,7 +446,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => SignUpScreen(),
+                                        builder: (context) =>
+                                            const SignUpScreen(),
                                       ),
                                     );
                                   },
@@ -463,6 +596,38 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+}
+
+// Utility class to handle login state management
+class LoginStateManager {
+  static const String _isLoggedInKey = 'isLoggedIn';
+  static const String _phoneNumberKey = 'phoneNumber';
+  
+  // Save login state when user successfully logs in
+  static Future<void> saveLoginState(String phoneNumber) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setString(_phoneNumberKey, phoneNumber);
+  }
+  
+  // Clear login state when user logs out
+  static Future<void> clearLoginState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_isLoggedInKey);
+    await prefs.remove(_phoneNumberKey);
+  }
+  
+  // Check if user is logged in
+  static Future<bool> isLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isLoggedInKey) ?? false;
+  }
+  
+  // Get saved phone number
+  static Future<String?> getSavedPhoneNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_phoneNumberKey);
   }
 }
 

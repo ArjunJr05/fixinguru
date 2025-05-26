@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({Key? key}) : super(key: key);
+  const ChatPage({super.key});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -299,11 +299,11 @@ class ChatBubble extends StatelessWidget {
   final bool isSmallScreen;
 
   const ChatBubble({
-    Key? key,
+    super.key,
     required this.message,
     required this.showAvatar,
     required this.isSmallScreen,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -331,12 +331,12 @@ class ChatBubble extends StatelessWidget {
                   ? const Color(0xFF00C853).withOpacity(0.9)
                   : const Color(0xFF2C2C2C),
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
+                topLeft: const Radius.circular(18),
+                topRight: const Radius.circular(18),
                 bottomLeft:
-                    message.isMe ? Radius.circular(18) : Radius.circular(4),
+                    message.isMe ? const Radius.circular(18) : const Radius.circular(4),
                 bottomRight:
-                    message.isMe ? Radius.circular(4) : Radius.circular(18),
+                    message.isMe ? const Radius.circular(4) : const Radius.circular(18),
               ),
             ),
             child: Column(

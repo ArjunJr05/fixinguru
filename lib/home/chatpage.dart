@@ -25,7 +25,7 @@ class _ChatBotState extends State<ChatBot> {
         });
 
         // Add bot response after user message (simulating reply)
-        Future.delayed(Duration(seconds: 1), () {
+        Future.delayed(const Duration(seconds: 1), () {
           setState(() {
             _messages.add({
               'text':
@@ -39,7 +39,7 @@ class _ChatBotState extends State<ChatBot> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollController.animateTo(
               _scrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
             );
           });
@@ -52,7 +52,7 @@ class _ChatBotState extends State<ChatBot> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       });
@@ -66,7 +66,7 @@ class _ChatBotState extends State<ChatBot> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF121212),
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: Colors.green,
         elevation: 0,
@@ -77,27 +77,27 @@ class _ChatBotState extends State<ChatBot> {
               radius: 18,
               child: Text(
                 widget.title.isNotEmpty ? widget.title[0] : "T",
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
+                  const Text(
                     "Online now",
                     style: TextStyle(
                       color: Colors.white70,
@@ -111,7 +111,7 @@ class _ChatBotState extends State<ChatBot> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             onPressed: () {
               // Show options menu
             },
@@ -126,17 +126,17 @@ class _ChatBotState extends State<ChatBot> {
         children: [
           // Task Description Card
           Container(
-            margin: EdgeInsets.all(12),
-            padding: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Color(0xFF1E1E1E),
+              color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.grey.shade800, width: 0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(Icons.assignment, color: Colors.green),
                     SizedBox(width: 8),
@@ -150,34 +150,34 @@ class _ChatBotState extends State<ChatBot> {
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   widget.description,
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     OutlinedButton.icon(
-                      icon: Icon(Icons.check, size: 16),
-                      label: Text("Accept Task"),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: const Text("Accept Task"),
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.green,
-                        side: BorderSide(color: Colors.green),
+                        side: const BorderSide(color: Colors.green),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                     ),
                     OutlinedButton.icon(
-                      icon: Icon(Icons.calendar_today, size: 16),
-                      label: Text("Schedule"),
+                      icon: const Icon(Icons.calendar_today, size: 16),
+                      label: const Text("Schedule"),
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.amber,
-                        side: BorderSide(color: Colors.amber),
+                        side: const BorderSide(color: Colors.amber),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -201,7 +201,7 @@ class _ChatBotState extends State<ChatBot> {
                           size: 60,
                           color: Colors.grey.shade700,
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
                           "Send a message to get started",
                           style: TextStyle(
@@ -214,7 +214,7 @@ class _ChatBotState extends State<ChatBot> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       final message = _messages[index];
@@ -233,12 +233,12 @@ class _ChatBotState extends State<ChatBot> {
                             left: isUser ? 40 : 0,
                             right: isUser ? 0 : 40,
                           ),
-                          padding: EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: isUser ? Colors.green : Color(0xFF2A2A2A),
+                            color: isUser ? Colors.green : const Color(0xFF2A2A2A),
                             borderRadius: BorderRadius.circular(16).copyWith(
-                              bottomRight: isUser ? Radius.circular(0) : null,
-                              bottomLeft: !isUser ? Radius.circular(0) : null,
+                              bottomRight: isUser ? const Radius.circular(0) : null,
+                              bottomLeft: !isUser ? const Radius.circular(0) : null,
                             ),
                           ),
                           child: Column(
@@ -253,7 +253,7 @@ class _ChatBotState extends State<ChatBot> {
                                   fontSize: 15,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 _getFormattedTime(message['time']),
                                 style: TextStyle(
@@ -274,8 +274,8 @@ class _ChatBotState extends State<ChatBot> {
 
           // Message Input Field
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
               color: Color(0xFF1A1A1A),
               boxShadow: [
                 BoxShadow(
@@ -289,21 +289,21 @@ class _ChatBotState extends State<ChatBot> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.attach_file, color: Colors.grey),
+                    icon: const Icon(Icons.attach_file, color: Colors.grey),
                     onPressed: () {},
                   ),
                   Expanded(
                     child: TextField(
                       controller: _messageController,
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: InputDecoration(
                         hintText: "Type a message...",
-                        hintStyle: TextStyle(color: Colors.grey),
+                        hintStyle: const TextStyle(color: Colors.grey),
                         filled: true,
-                        fillColor: Color(0xFF2A2A2A),
-                        contentPadding: EdgeInsets.symmetric(
+                        fillColor: const Color(0xFF2A2A2A),
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
                         ),
@@ -314,7 +314,7 @@ class _ChatBotState extends State<ChatBot> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Material(
                     color: Colors.green,
                     borderRadius: BorderRadius.circular(24),
@@ -322,8 +322,8 @@ class _ChatBotState extends State<ChatBot> {
                       borderRadius: BorderRadius.circular(24),
                       onTap: _sendMessage,
                       child: Container(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
+                        padding: const EdgeInsets.all(10),
+                        child: const Icon(
                           Icons.send,
                           color: Colors.white,
                           size: 22,

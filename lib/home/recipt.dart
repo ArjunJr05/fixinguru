@@ -12,18 +12,18 @@ class TaskReceiptPage extends StatelessWidget {
   final Map<String, dynamic> taskData;
 
   const TaskReceiptPage({
-    Key? key,
+    super.key,
     required this.taskData,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     // Get the primary color from the context
-    final primaryColor = const Color(0xFF4CD964);
-    final backgroundColor = const Color(0xFF121212);
-    final cardColor = const Color(0xFF1E1E1E);
-    final textColor = Colors.white;
-    final secondaryTextColor = Colors.grey;
+    const primaryColor = Color(0xFF4CD964);
+    const backgroundColor = Color(0xFF121212);
+    const cardColor = Color(0xFF1E1E1E);
+    const textColor = Colors.white;
+    const secondaryTextColor = Colors.grey;
 
     // Calculate taxes and fees (20% of estimated budget)
     final double estimatedBudget = taskData['estimatedBudget'] ?? 0.0;
@@ -37,7 +37,7 @@ class TaskReceiptPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Task Receipt Preview',
           style: TextStyle(
             color: Colors.white,
@@ -45,13 +45,13 @@ class TaskReceiptPage extends StatelessWidget {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           // Download PDF button
           IconButton(
-            icon: Icon(Icons.download, color: Colors.black),
+            icon: const Icon(Icons.download, color: Colors.black),
             onPressed: () => _generateAndDownloadPDF(
                 context, taskData, finalBudget, serviceFee, tax, totalAmount),
             tooltip: 'Download PDF',
@@ -83,7 +83,7 @@ class TaskReceiptPage extends StatelessWidget {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
                     blurRadius: 10,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   )
                 ],
               ),
@@ -91,10 +91,10 @@ class TaskReceiptPage extends StatelessWidget {
                 children: [
                   // Receipt Header
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(16),
                         topRight: Radius.circular(16),
                       ),
@@ -110,7 +110,7 @@ class TaskReceiptPage extends StatelessWidget {
                             size: 24,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +125,7 @@ class TaskReceiptPage extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 taskData['category'],
                                 style: TextStyle(
@@ -167,7 +167,7 @@ class TaskReceiptPage extends StatelessWidget {
                                 fontSize: 14,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               taskData['description'],
                               style: TextStyle(
@@ -211,7 +211,7 @@ class TaskReceiptPage extends StatelessWidget {
                                 },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  minimumSize: Size(0, 0),
+                                  minimumSize: const Size(0, 0),
                                 ),
                                 child: Text(
                                   'Read more',
@@ -230,10 +230,10 @@ class TaskReceiptPage extends StatelessWidget {
 
                   // Cost Breakdown
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: cardColor.withOpacity(0.8),
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(16),
                         bottomRight: Radius.circular(16),
                       ),
@@ -249,27 +249,27 @@ class TaskReceiptPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         _buildReceiptRow(
                             'Task Budget',
                             '₹${finalBudget.toStringAsFixed(2)}',
                             textColor,
                             secondaryTextColor),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         _buildReceiptRow(
                             'Service Fee (15%)',
                             '₹${serviceFee.toStringAsFixed(2)}',
                             textColor,
                             secondaryTextColor),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         _buildReceiptRow(
                             'Taxes (5%)',
                             '₹${tax.toStringAsFixed(2)}',
                             textColor,
                             secondaryTextColor),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Divider(color: secondaryTextColor.withOpacity(0.3)),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         _buildReceiptRow(
                             'Total Amount',
                             '₹${totalAmount.toStringAsFixed(2)}',
@@ -284,7 +284,7 @@ class TaskReceiptPage extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Payment Method
             Text(
@@ -295,10 +295,10 @@ class TaskReceiptPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
 
             Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: cardColor,
                 borderRadius: BorderRadius.circular(16),
@@ -306,14 +306,14 @@ class TaskReceiptPage extends StatelessWidget {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2),
                     blurRadius: 10,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   )
                 ],
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -324,7 +324,7 @@ class TaskReceiptPage extends StatelessWidget {
                       size: 24,
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +336,7 @@ class TaskReceiptPage extends StatelessWidget {
                             fontSize: 14,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           '₹5,000.00',
                           style: TextStyle(
@@ -357,7 +357,7 @@ class TaskReceiptPage extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
 
             // Post Task Button
             SizedBox(
@@ -391,7 +391,7 @@ class TaskReceiptPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.check_circle, size: 20),
@@ -415,7 +415,7 @@ class TaskReceiptPage extends StatelessWidget {
 
   // Show success toast with Lottie animation
   void _showSuccessToast(BuildContext context, TaskItem newTask) {
-    final primaryColor = const Color(0xFF4CD964);
+    const primaryColor = Color(0xFF4CD964);
 
     // Create an overlay entry
     OverlayState? overlayState = Overlay.of(context);
@@ -429,7 +429,7 @@ class TaskReceiptPage extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.8),
               borderRadius: BorderRadius.circular(16),
@@ -445,10 +445,10 @@ class TaskReceiptPage extends StatelessWidget {
               children: [
                 // Small Lottie animation
                 // Small Lottie animation
-                Container(
+                SizedBox(
                   height: 50,
                   width: 50,
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       '✅', // Check mark emoji
                       style: TextStyle(
@@ -458,13 +458,13 @@ class TaskReceiptPage extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      const Text(
                         'Task Posted Successfully!',
                         style: TextStyle(
                           color: Colors.white,
@@ -472,7 +472,7 @@ class TaskReceiptPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'You will be notified when someone accepts your task',
                         style: TextStyle(
@@ -494,7 +494,7 @@ class TaskReceiptPage extends StatelessWidget {
     overlayState.insert(overlayEntry);
 
     // Remove after showing animation
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       overlayEntry.remove();
     });
   }
@@ -510,14 +510,14 @@ class TaskReceiptPage extends StatelessWidget {
     var status = await Permission.storage.request();
     if (!status.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Storage permission is required to save PDF')),
+        const SnackBar(content: Text('Storage permission is required to save PDF')),
       );
       return;
     }
 
     // Show loading indicator
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Generating PDF...')),
+      const SnackBar(content: Text('Generating PDF...')),
     );
 
     final pdf = pw.Document();
@@ -528,7 +528,7 @@ class TaskReceiptPage extends StatelessWidget {
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           return pw.Container(
-            padding: pw.EdgeInsets.all(24),
+            padding: const pw.EdgeInsets.all(24),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -545,13 +545,13 @@ class TaskReceiptPage extends StatelessWidget {
                         pw.SizedBox(height: 5),
                         pw.Text(
                             'Receipt #${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-                            style: pw.TextStyle(color: PdfColors.grey700)),
+                            style: const pw.TextStyle(color: PdfColors.grey700)),
                       ],
                     ),
                     pw.Container(
                       width: 50,
                       height: 50,
-                      decoration: pw.BoxDecoration(
+                      decoration: const pw.BoxDecoration(
                         color: PdfColors.green,
                         shape: pw.BoxShape.circle,
                       ),
@@ -570,7 +570,7 @@ class TaskReceiptPage extends StatelessWidget {
 
                 // Task Info
                 pw.Container(
-                  padding: pw.EdgeInsets.all(15),
+                  padding: const pw.EdgeInsets.all(15),
                   decoration: pw.BoxDecoration(
                     color: PdfColors.grey100,
                     borderRadius: pw.BorderRadius.circular(8),
@@ -600,7 +600,7 @@ class TaskReceiptPage extends StatelessWidget {
 
                 // Payment Details
                 pw.Container(
-                  padding: pw.EdgeInsets.all(15),
+                  padding: const pw.EdgeInsets.all(15),
                   decoration: pw.BoxDecoration(
                     color: PdfColors.grey100,
                     borderRadius: pw.BorderRadius.circular(8),
@@ -646,7 +646,7 @@ class TaskReceiptPage extends StatelessWidget {
                   child: pw.Text(
                       'Generated on ${DateTime.now().toString().split('.')[0]}',
                       style:
-                          pw.TextStyle(color: PdfColors.grey700, fontSize: 10)),
+                          const pw.TextStyle(color: PdfColors.grey700, fontSize: 10)),
                 ),
               ],
             ),
@@ -666,7 +666,7 @@ class TaskReceiptPage extends StatelessWidget {
       if (filePath != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('PDF saved successfully'),
+            content: const Text('PDF saved successfully'),
             action: SnackBarAction(
               label: 'Open',
               onPressed: () => OpenFile.open(filePath),
@@ -687,7 +687,7 @@ class TaskReceiptPage extends StatelessWidget {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('PDF saved to app storage'),
+            content: const Text('PDF saved to app storage'),
             action: SnackBarAction(
               label: 'Open',
               onPressed: () => OpenFile.open(file.path),
@@ -711,11 +711,11 @@ class TaskReceiptPage extends StatelessWidget {
   // Helper method for PDF row
   pw.Widget _buildPdfRow(String label, String value) {
     return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(vertical: 4),
+      padding: const pw.EdgeInsets.symmetric(vertical: 4),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(label, style: pw.TextStyle(color: PdfColors.grey800)),
+          pw.Text(label, style: const pw.TextStyle(color: PdfColors.grey800)),
           pw.Text(value, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
         ],
       ),

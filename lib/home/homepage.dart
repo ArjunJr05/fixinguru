@@ -3,7 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -11,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentCarouselIndex = 0;
-  int _currentNavIndex = 2;
+  final int _currentNavIndex = 2;
 
   // Changed to CarouselSliderController to match the expected type
   final CarouselSliderController _carouselController =
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Our Services',
                         style: TextStyle(

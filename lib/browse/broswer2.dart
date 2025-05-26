@@ -17,7 +17,7 @@ class AppColors {
 class BrowsePage extends StatefulWidget {
   final Function(Map<String, dynamic>) onTaskSelected;
 
-  const BrowsePage({Key? key, required this.onTaskSelected}) : super(key: key);
+  const BrowsePage({super.key, required this.onTaskSelected});
 
   @override
   _BrowsePageState createState() => _BrowsePageState();
@@ -257,7 +257,7 @@ class _BrowsePageState extends State<BrowsePage>
                           size: isSmallScreen ? 20 : 22,
                         ),
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
+                        constraints: const BoxConstraints(),
                         onPressed: () {
                           setState(() {
                             _isSearching = !_isSearching;
@@ -276,7 +276,7 @@ class _BrowsePageState extends State<BrowsePage>
                           size: isSmallScreen ? 20 : 22,
                         ),
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
+                        constraints: const BoxConstraints(),
                         onPressed: () {
                           _showFilterBottomSheet(context, isSmallScreen);
                         },
@@ -296,26 +296,26 @@ class _BrowsePageState extends State<BrowsePage>
                 ),
                 child: TextField(
                   controller: _searchController,
-                  style: TextStyle(color: AppColors.textPrimary),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: "Search tasks...",
-                    hintStyle: TextStyle(color: AppColors.textSecondary),
+                    hintStyle: const TextStyle(color: AppColors.textSecondary),
                     prefixIcon:
-                        Icon(Icons.search, color: AppColors.textSecondary),
+                        const Icon(Icons.search, color: AppColors.textSecondary),
                     filled: true,
                     fillColor: AppColors.cardBackground,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide:
-                          BorderSide(color: AppColors.primary, width: 1.5),
+                          const BorderSide(color: AppColors.primary, width: 1.5),
                     ),
                   ),
                   onChanged: (value) {
@@ -622,7 +622,7 @@ class _BrowsePageState extends State<BrowsePage>
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               // View Detail Button with shake animation
               AnimatedBuilder(
                 animation: offsetAnimation,

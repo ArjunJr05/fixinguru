@@ -4,7 +4,7 @@ import 'package:fixinguru/home/create.dart';
 import 'package:flutter/material.dart';
 
 class Tasker extends StatefulWidget {
-  const Tasker({Key? key}) : super(key: key);
+  const Tasker({super.key});
 
   @override
   State<Tasker> createState() => _TaskerState();
@@ -342,7 +342,7 @@ class _TaskerState extends State<Tasker> {
       children: [
         ...clientTasks
             .map((task) => _buildEnhancedTaskItem(task, context))
-            .toList(),
+            ,
         if (clientTasks.isEmpty)
           _buildEmptyState(
             icon: Icons.post_add,
@@ -740,8 +740,8 @@ class _TaskerState extends State<Tasker> {
           tag: 'task-${task.name}-icon',
           child: CircleAvatar(
             backgroundColor: task.color.withOpacity(0.2),
-            child: Icon(task.icon, color: task.color),
             radius: isSmallScreen ? 20 : 24,
+            child: Icon(task.icon, color: task.color),
           ),
         ),
         title: Text(

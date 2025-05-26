@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.fixinguru">
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Microphone permissions for speech recognition -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>

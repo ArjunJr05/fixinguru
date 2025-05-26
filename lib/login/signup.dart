@@ -169,11 +169,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 color: Colors.white,
                                 fontSize: hintFontSize / textScaleFactor,
                               ),
-                              children: [
+                              children: const [
                                 TextSpan(
                                   text: 'terms & conditions',
                                   style: TextStyle(
-                                    color: const Color(0xFF4AC959),
+                                    color: Color(0xFF4AC959),
                                   ),
                                 ),
                                 TextSpan(
@@ -204,11 +204,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 color: Colors.white,
                                 fontSize: hintFontSize / textScaleFactor,
                               ),
-                              children: [
+                              children: const [
                                 TextSpan(
                                   text: 'newsletter',
                                   style: TextStyle(
-                                    color: const Color(0xFF4AC959),
+                                    color: Color(0xFF4AC959),
                                   ),
                                 ),
                               ],
@@ -243,10 +243,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         // Navigate to password page
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(
-            builder: (context) => OtpVerificationScreen(
-              phoneNumber: _phoneController.text,
-            ),
+            //                               MaterialPageRoute(
+            // builder: (context) => OtpVerificationScreen(
+            //   phoneNumber: _phoneController.text,
+            // ),
+            //                               ),
+            MaterialPageRoute(
+            builder: (context) => OtpVerificationScreen(phoneNumber: '',)
                                           ),
                                         );
                                       }
@@ -273,7 +276,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           SizedBox(height: spacingHeight),
 
                           // OR SIGN UP WITH - with dividers
-                          Row(
+                          const Row(
                             children: [
                               Expanded(
                                 child: Divider(

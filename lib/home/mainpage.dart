@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:fixinguru/browse/broswer.dart';
 import 'package:fixinguru/browse/broswer2.dart';
 import 'package:fixinguru/browse/payment.dart';
@@ -11,9 +13,10 @@ import 'package:fixinguru/home/search.dart';
 import 'package:fixinguru/home/tasker.dart';
 import 'package:fixinguru/login/loginpage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+  const MainPage({super.key});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -25,6 +28,10 @@ class _MainPageState extends State<MainPage>
   late AnimationController _animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late List<Widget> _pages;
+  bool _isCheckingLoginState = true;
+  String? _userPhoneNumber;
+  String _userName =
+      'User'; // Default name, will be updated from preferences or Firestore
 
   // Sample task data for demonstration
   final Map<String, dynamic> sampleTask = {
@@ -64,22 +71,121 @@ class _MainPageState extends State<MainPage>
       duration: const Duration(milliseconds: 300),
     );
 
-    // Initialize _pages here with access to context
+    // Initialize Firebase and then check login state
+    Firebase.initializeApp().then((_) {
+      _checkLoginState();
+    });
+  }
+
+  // Check if user is logged in
+  Future<void> _checkLoginState() async {
+    try {
+      bool isLoggedIn = await LoginStateManager.isLoggedIn();
+
+      if (!isLoggedIn) {
+        // User is not logged in, redirect to login page
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        }
+        return;
+      }
+
+      // User is logged in, get their phone number and initialize the app
+      String? phoneNumber = await LoginStateManager.getSavedPhoneNumber();
+
+      if (mounted) {
+        setState(() {
+          _userPhoneNumber = phoneNumber;
+          _isCheckingLoginState = false;
+        });
+
+        // Initialize pages after confirming login state
+        _initializePages();
+
+        // Optionally load user data from Firestore
+        _loadUserData();
+      }
+    } catch (e) {
+      print('Error checking login state: $e');
+      // On error, redirect to login page
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    }
+  }
+
+  // Initialize pages after login verification
+  void _initializePages() {
     _pages = [
-      Tasker(),
+      const Tasker(),
       BrowsePage(onTaskSelected: (task) {
         // Navigate to task details when a task is selected
         Navigator.push(
-          context, // Now we can safely access context here
+          context,
           MaterialPageRoute(
             builder: (context) => TaskDetailsPage(task: task),
           ),
         );
       }),
-      HomeScreen(),
+      const HomeScreen(),
       NotificationsPage(),
-      ProfilePage(),
+      const ProfilePage(),
     ];
+  }
+
+  // Load user data from SharedPreferences or Firestore
+  // Add these variables at the top of your _MainPageState class
+  String _firstName = '';
+  String _lastName = '';
+  String _phoneNumber = '';
+  String? _profilePhotoUrl;
+
+// Update the _loadUserData method
+  Future<void> _loadUserData() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? phoneNumber = await LoginStateManager.getSavedPhoneNumber();
+
+      if (phoneNumber != null) {
+        // Fetch user data from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(phoneNumber)
+            .get();
+
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+
+          setState(() {
+            _firstName = userData['first_name'] ?? '';
+            _lastName = userData['last_name'] ?? '';
+            _phoneNumber = phoneNumber;
+            _profilePhotoUrl = userData['profile_photo_url'];
+
+            // Update the user name for display
+            _userName = '$_firstName $_lastName'.trim();
+
+            // Save the name to preferences for future use
+            prefs.setString('userName', _userName);
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      // Use default values on error
+      setState(() {
+        _firstName = 'User';
+        _lastName = '';
+        _userName = 'User';
+      });
+    }
   }
 
   @override
@@ -90,6 +196,31 @@ class _MainPageState extends State<MainPage>
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while checking login state
+    if (_isCheckingLoginState) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4AC959)),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Loading...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final size = MediaQuery.of(context).size;
     final iconSize = max(min(size.width * 0.06, 24.0), 16.0);
 
@@ -99,7 +230,6 @@ class _MainPageState extends State<MainPage>
       extendBody: true,
 
       // App Bar
-      // In the _MainPageState class, update the build method's AppBar actions
       appBar: AppBar(
         backgroundColor: const Color(0xFF4AC959),
         title: Text(
@@ -128,7 +258,7 @@ class _MainPageState extends State<MainPage>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => PaymentPage()),
+                MaterialPageRoute(builder: (context) => const PaymentPage()),
               );
             },
           ),
@@ -140,7 +270,7 @@ class _MainPageState extends State<MainPage>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ChatPage()),
+                MaterialPageRoute(builder: (context) => const ChatPage()),
               );
             },
           )
@@ -225,7 +355,8 @@ class _MainPageState extends State<MainPage>
                     title: _drawerItems[index]['title'],
                     onTap: () {
                       Navigator.pop(context);
-                      // Handle navigation
+                      // Handle navigation based on the item
+                      _handleDrawerNavigation(_drawerItems[index]['title']);
                     },
                   );
                 },
@@ -252,8 +383,41 @@ class _MainPageState extends State<MainPage>
     );
   }
 
-  // Drawer Header
+  // Handle drawer navigation
+  void _handleDrawerNavigation(String title) {
+    switch (title) {
+      case 'Home':
+        setState(() {
+          _currentNavIndex = 2; // Home tab
+        });
+        break;
+      case 'My Profile':
+        setState(() {
+          _currentNavIndex = 4; // Profile tab
+        });
+        break;
+      case 'Payments':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PaymentPage()),
+        );
+        break;
+      // Add more cases as needed
+      default:
+        // Handle other menu items
+        break;
+    }
+  }
+
+  // Drawer Header with dynamic user data
   Widget _buildDrawerHeader() {
+    // Get the first letter for the avatar
+    String avatarText = _firstName.isNotEmpty
+        ? _firstName[0].toUpperCase()
+        : _lastName.isNotEmpty
+            ? _lastName[0].toUpperCase()
+            : '?';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -268,46 +432,69 @@ class _MainPageState extends State<MainPage>
         children: [
           Row(
             children: [
+              // Profile avatar with first letter
               Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.grey[900],
+                  color: const Color(0xFF4AC959).withOpacity(0.2),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Color(0xFF4AC959),
+                    color: const Color(0xFF4AC959),
                     width: 2,
                   ),
                 ),
-                child: ClipOval(
-                  // Ensures the image fits inside the circular shape
-                  child: Image.asset(
-                    'assets/images/ganesh2.jpg',
-                    width:
-                        56, // Slightly smaller than the container to fit inside
-                    height: 56,
-                    fit: BoxFit
-                        .cover, // Ensures the image covers the area properly
-                  ),
+                child: Center(
+                  child:
+                      _profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                _profilePhotoUrl!,
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Fallback to letter avatar if image fails to load
+                                  return Text(
+                                    avatarText,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          : Text(
+                              avatarText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Arjun',
-                      style: TextStyle(
+                      '$_firstName $_lastName'.trim(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'arjun@example.com',
-                      style: TextStyle(
+                      _phoneNumber.isNotEmpty
+                          ? "+91-" + _phoneNumber
+                          : 'Phone not available',
+                      style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
                       ),
@@ -387,14 +574,31 @@ class _MainPageState extends State<MainPage>
     );
   }
 
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    // Store the context in a variable before showing the dialog
+    final currentContext = context;
+
+    showDialog(
+      context: currentContext,
+      builder: (context) => LogoutConfirmationDialog(
+        onConfirmLogout: () {
+          Navigator.of(context).pop(); // Close the dialog
+          _performLogout(currentContext); // Use the stored context
+        },
+      ),
+    );
+  }
+
   // Logout Button
   Widget _buildLogoutButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextButton(
         onPressed: () {
-          // Show the logout confirmation dialog
-          _showLogoutConfirmationDialog(context);
+          // Use the scaffold key to get the context
+          if (_scaffoldKey.currentContext != null) {
+            _showLogoutConfirmationDialog(_scaffoldKey.currentContext!);
+          }
         },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.all(16),
@@ -431,32 +635,31 @@ class _MainPageState extends State<MainPage>
   }
 
   // Show the logout confirmation dialog
-  void _showLogoutConfirmationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => LogoutConfirmationDialog(
-        onConfirmLogout: () {
-          // Perform logout logic here
-          Navigator.of(context).pop(); // Close the dialog
-          _performLogout(context); // Call the logout function
-        },
-      ),
-    );
-  }
 
   // Perform logout and navigate to the login screen
-  void _performLogout(BuildContext context) {
-    // Clear user session or perform any logout logic here
-    // For example, you can use a state management solution (e.g., Provider, Riverpod) to clear the user's session.
+  void _performLogout(BuildContext context) async {
+    try {
+      // Get the context before any async operations
+      final navigator = Navigator.of(context);
 
-    // Navigate to the login screen or home screen
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-          builder: (context) =>
-              LoginScreen()), // Replace with your login screen
-      (Route<dynamic> route) => false, // Remove all routes from the stack
-    );
+      // Clear login state using the LoginStateManager
+      await LoginStateManager.clearLoginState();
+
+      // Use the stored navigator reference
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      print('Error during logout: $e');
+      // If there's an error, still try to navigate to login screen
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    }
   }
 
   // Build navigation item
@@ -521,20 +724,26 @@ class _MainPageState extends State<MainPage>
               ),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Color(0xFF4AC959),
+                color: const Color(0xFF4AC959),
                 width: 2,
               ),
             ),
             child: CircleAvatar(
-              backgroundColor:
-                  Colors.black, // Black background inside the CircleAvatar
-              radius:
-                  size * 0.5, // Adjust the radius to fit inside the container
+              backgroundColor: Colors.black,
+              radius: size * 0.5,
               child: Image.asset(
-                'assets/images/logo.png', // Path to your image asset
-                width: size * 1.5, // Set the width
-                height: size * 1.5, // Set the height
-                fit: BoxFit.contain, // Adjust the image fit
+                'assets/images/logo.png',
+                width: size * 1.5,
+                height: size * 1.5,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback if logo doesn't exist
+                  return Icon(
+                    Icons.home,
+                    color: Colors.white,
+                    size: size * 0.5,
+                  );
+                },
               ),
             ),
           ),
@@ -550,5 +759,38 @@ class _MainPageState extends State<MainPage>
     setState(() {
       _currentNavIndex = index;
     });
+  }
+}
+
+// Login State Manager (add this if it's not already in your login file)
+class LoginStateManager {
+  static const String _isLoggedInKey = 'isLoggedIn';
+  static const String _phoneNumberKey = 'phoneNumber';
+
+  // Save login state when user successfully logs in
+  static Future<void> saveLoginState(String phoneNumber) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setString(_phoneNumberKey, phoneNumber);
+  }
+
+  // Clear login state when user logs out
+  static Future<void> clearLoginState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_isLoggedInKey);
+    await prefs.remove(_phoneNumberKey);
+    await prefs.remove('userName'); // Also clear saved user name
+  }
+
+  // Check if user is logged in
+  static Future<bool> isLoggedIn() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isLoggedInKey) ?? false;
+  }
+
+  // Get saved phone number
+  static Future<String?> getSavedPhoneNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_phoneNumberKey);
   }
 }

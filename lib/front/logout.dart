@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 class LogoutConfirmationDialog extends StatelessWidget {
   final VoidCallback onConfirmLogout;
 
-  const LogoutConfirmationDialog({Key? key, required this.onConfirmLogout})
-      : super(key: key);
+  const LogoutConfirmationDialog({super.key, required this.onConfirmLogout});
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = const Color(0xFF4CD964); // Your primary color
-    final backgroundColor = Colors.black; // Background color
-    final textColor = Colors.white; // Text color
-    final secondaryTextColor = Colors.grey; // Secondary text color
+    const primaryColor = Color(0xFF4CD964); // Your primary color
+    const backgroundColor = Colors.black; // Background color
+    const textColor = Colors.white; // Text color
+    const secondaryTextColor = Colors.grey; // Secondary text color
 
     return Dialog(
       backgroundColor: backgroundColor,
@@ -33,7 +32,7 @@ class LogoutConfirmationDialog extends StatelessWidget {
               size: 48,
               color: primaryColor,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Title
             Text(
@@ -44,7 +43,7 @@ class LogoutConfirmationDialog extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Subtitle
             Text(
@@ -55,7 +54,7 @@ class LogoutConfirmationDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Buttons
             Row(
@@ -70,15 +69,15 @@ class LogoutConfirmationDialog extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textColor,
                       side: BorderSide(color: Colors.grey.shade700),
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text('Cancel'),
+                    child: const Text('Cancel'),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
 
                 // Logout Button
                 Expanded(
@@ -87,12 +86,12 @@ class LogoutConfirmationDialog extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.black,
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text('Log Out'),
+                    child: const Text('Log Out'),
                   ),
                 ),
               ],

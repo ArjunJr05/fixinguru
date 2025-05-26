@@ -8,6 +8,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:flutter/services.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
   @override
   _OnboardingScreenState createState() => _OnboardingScreenState();
 }
@@ -421,7 +423,7 @@ class EnhancedOnboardingPage extends StatelessWidget {
   final int index;
   final bool useCustomImage;
 
-  EnhancedOnboardingPage({
+  const EnhancedOnboardingPage({super.key, 
     required this.title,
     required this.imagePath,
     required this.description,
@@ -476,7 +478,7 @@ class EnhancedOnboardingPage extends StatelessWidget {
                     SizedBox(height: 30),
 
                     // Enhanced image container with circular background but rectangular image
-                    Container(
+                    SizedBox(
                       height: 260,
                       width: 260,
                       child: Stack(

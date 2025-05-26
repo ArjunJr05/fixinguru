@@ -40,6 +40,8 @@ class NotificationsPage extends StatelessWidget {
     },
   ];
 
+  NotificationsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +57,7 @@ class NotificationsPage extends StatelessWidget {
                     const EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
                 child: Text(
                   "${notifications.length} New Tasks Available",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
@@ -69,8 +71,8 @@ class NotificationsPage extends StatelessWidget {
                     final notification = notifications[index];
 
                     return Card(
-                      margin: EdgeInsets.only(bottom: 16),
-                      color: Color(0xFF121212),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      color: const Color(0xFF121212),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -105,11 +107,11 @@ class NotificationsPage extends StatelessWidget {
                                 child: Center(
                                   child: Text(
                                     notification["icon"]!,
-                                    style: TextStyle(fontSize: 24),
+                                    style: const TextStyle(fontSize: 24),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 16),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +123,7 @@ class NotificationsPage extends StatelessWidget {
                                         Flexible(
                                           child: Text(
                                             notification["title"]!,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
@@ -129,7 +131,7 @@ class NotificationsPage extends StatelessWidget {
                                           ),
                                         ),
                                         Container(
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                               horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
                                             color:
@@ -139,7 +141,7 @@ class NotificationsPage extends StatelessWidget {
                                           ),
                                           child: Text(
                                             notification["time"]!,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               color: Colors.green,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
@@ -148,7 +150,7 @@ class NotificationsPage extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       notification["description"]!,
                                       style: TextStyle(
@@ -156,7 +158,7 @@ class NotificationsPage extends StatelessWidget {
                                         fontSize: 14,
                                       ),
                                     ),
-                                    SizedBox(height: 12),
+                                    const SizedBox(height: 12),
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton(
@@ -178,10 +180,10 @@ class NotificationsPage extends StatelessWidget {
                                             borderRadius:
                                                 BorderRadius.circular(8),
                                           ),
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 8),
                                         ),
-                                        child: Text(
+                                        child: const Text(
                                           "View Details",
                                           style: TextStyle(
                                             color: Colors.white,

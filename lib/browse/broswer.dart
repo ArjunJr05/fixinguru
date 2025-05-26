@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 class TaskDetailsPage extends StatefulWidget {
   final Map<String, dynamic> task;
 
-  const TaskDetailsPage({Key? key, required this.task}) : super(key: key);
+  const TaskDetailsPage({super.key, required this.task});
 
   @override
   _TaskDetailsPageState createState() => _TaskDetailsPageState();
@@ -69,7 +69,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
           return Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -80,7 +80,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ),
             ),
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: constraints.maxWidth * 0.05,
@@ -91,20 +91,20 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   children: [
                     // Task Icon and Title Section with animation
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1A1A1A),
+                        color: const Color(0xFF1A1A1A),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.green.withOpacity(0.1),
                             spreadRadius: 1,
                             blurRadius: 10,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -118,11 +118,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             child: Center(
                               child: Text(
                                 widget.task["icon"] ?? "📋",
-                                style: TextStyle(fontSize: 30),
+                                style: const TextStyle(fontSize: 30),
                               ),
                             ),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                                         constraints.maxWidth > 360 ? 20 : 18,
                                   ),
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 8,
@@ -163,7 +163,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ),
                     ),
 
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Info Cards Section
                     Row(
@@ -177,7 +177,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             constraints,
                           ),
                         ),
-                        SizedBox(width: 16),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: _buildInfoCard(
                             "When",
@@ -190,15 +190,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ],
                     ),
 
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Description Section
                     _buildSectionTitle("Task Description"),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1A1A1A),
+                        color: const Color(0xFF1A1A1A),
                         borderRadius: BorderRadius.circular(16),
                         border:
                             Border.all(color: Colors.grey.shade800, width: 0.5),
@@ -213,15 +213,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ),
                     ),
 
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Skills Required Section
                     _buildSectionTitle("Skills Required"),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF1A1A1A),
+                        color: const Color(0xFF1A1A1A),
                         borderRadius: BorderRadius.circular(16),
                         border:
                             Border.all(color: Colors.grey.shade800, width: 0.5),
@@ -236,15 +236,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ),
                     ),
 
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                     // Budget Section
                     _buildSectionTitle("Budget"),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
                             Color(0xFF1A1A1A),
                             Color(0xFF222222),
@@ -258,7 +258,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             color: Colors.green.withOpacity(0.05),
                             spreadRadius: 1,
                             blurRadius: 10,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -275,7 +275,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                                   fontSize: 14,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 "RM ${_generateBudget(widget.task)}",
                                 style: TextStyle(
@@ -288,13 +288,13 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                             ],
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.green.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(
                                   Icons.sync_alt,
@@ -317,7 +317,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                       ),
                     ),
 
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -326,7 +326,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         }),
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
         ),
@@ -335,7 +335,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           boxShadow: [
             BoxShadow(
               color: Colors.green.withOpacity(0.1),
-              offset: Offset(0, -4),
+              offset: const Offset(0, -4),
               blurRadius: 10,
             ),
           ],
@@ -356,11 +356,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               elevation: 8,
               shadowColor: Colors.green.withOpacity(0.3),
             ),
-            child: Text(
+            child: const Text(
               "Apply Now",
               style: TextStyle(
                 color: Colors.white,
@@ -377,7 +377,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Widget _buildChip(
       String label, Color bgColor, Color textColor, IconData icon) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
@@ -386,7 +386,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: textColor),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
@@ -402,9 +402,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   Widget _buildSkillChip(String skill) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [Color(0xFF222222), Color(0xFF2D2D2D)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -415,11 +415,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, color: Colors.green, size: 14),
-          SizedBox(width: 6),
+          const Icon(Icons.check_circle_outline, color: Colors.green, size: 14),
+          const SizedBox(width: 6),
           Text(
             skill,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
             ),
@@ -432,9 +432,9 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
   Widget _buildInfoCard(String title, String value, IconData icon,
       Color iconBgColor, BoxConstraints constraints) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF1A1A1A),
+        color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade800, width: 0.5),
       ),
@@ -444,14 +444,14 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: iconBgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: Colors.white, size: 18),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 title,
                 style: TextStyle(
@@ -461,7 +461,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             value,
             style: TextStyle(
@@ -479,7 +479,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   Widget _buildSectionTitle(String title) {
     return Container(
-      margin: EdgeInsets.only(left: 4),
+      margin: const EdgeInsets.only(left: 4),
       child: Row(
         children: [
           Container(
@@ -490,10 +490,10 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -517,7 +517,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                 // Animation container
                 TweenAnimationBuilder(
                   tween: Tween<double>(begin: 0, end: 1),
-                  duration: Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 800),
                   builder: (context, double value, child) {
                     return Transform.scale(
                       scale: value,
@@ -538,15 +538,15 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                         ),
                       ],
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.check_circle,
                       color: Colors.green,
                       size: 70,
                     ),
                   ),
                 ),
-                SizedBox(height: 32),
-                Text(
+                const SizedBox(height: 32),
+                const Text(
                   "Application Submitted!",
                   style: TextStyle(
                     color: Colors.white,
@@ -555,11 +555,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Container(
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Color(0xFF1A1A1A),
+                    color: const Color(0xFF1A1A1A),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey.shade800, width: 0.5),
                   ),
@@ -573,7 +573,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -583,11 +583,11 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     elevation: 8,
                     shadowColor: Colors.green.withOpacity(0.3),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.home_rounded, size: 18),
@@ -622,7 +622,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Could not share the task"),
+          content: const Text("Could not share the task"),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -643,7 +643,7 @@ class _TaskDetailsPageState extends State<TaskDetailsPage> {
 
   String _extractTime(String description) {
     final parts = description.split('|');
-    if (parts.length > 0) {
+    if (parts.isNotEmpty) {
       return parts[0].trim();
     }
     return "Time not specified";

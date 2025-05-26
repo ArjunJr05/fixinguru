@@ -20,6 +20,8 @@ class TaskCategory {
 }
 
 class TaskAlertsPage extends StatefulWidget {
+  const TaskAlertsPage({super.key});
+
   @override
   _TaskAlertsPageState createState() => _TaskAlertsPageState();
 }
@@ -114,7 +116,7 @@ class _TaskAlertsPageState extends State<TaskAlertsPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: [
+          children: const [
             Icon(Icons.check_circle, color: Colors.green),
             SizedBox(width: 10),
             Text('Settings saved successfully!',

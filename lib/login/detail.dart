@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 
 // First Screen - "Tell us about Yourself"
 class DetailPage extends StatefulWidget {
-  const DetailPage({Key? key}) : super(key: key);
+  const DetailPage({super.key});
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -16,7 +16,7 @@ class _DetailPageState extends State<DetailPage> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _locationController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   bool _isFormValid = false;
 
   @override
@@ -25,7 +25,7 @@ class _DetailPageState extends State<DetailPage> {
     _firstNameController.addListener(_checkFormValidity);
     _lastNameController.addListener(_checkFormValidity);
     _locationController.addListener(_checkFormValidity);
-    _phoneController.addListener(_checkFormValidity);
+    _emailController.addListener(_checkFormValidity);
   }
 
   @override
@@ -34,7 +34,7 @@ class _DetailPageState extends State<DetailPage> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _locationController.dispose();
-    _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -44,7 +44,7 @@ class _DetailPageState extends State<DetailPage> {
       _isFormValid = _firstNameController.text.isNotEmpty &&
           _lastNameController.text.isNotEmpty &&
           _locationController.text.isNotEmpty &&
-          _phoneController.text.isNotEmpty;
+          _emailController.text.isNotEmpty;
     });
   }
 
@@ -217,18 +217,13 @@ class _DetailPageState extends State<DetailPage> {
 
                           SizedBox(height: spacingHeight * 0.8),
 
-                          // Phone Number field
+                          // email Number field
                           _buildInputField(
                             context: context,
-                            label: 'Phone Number',
-                            hintText: 'Enter your phone number',
-                            controller: _phoneController,
-                            icon: Icons.phone_outlined,
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(10),
-                            ],
+                            label: 'email id',
+                            hintText: 'Enter your email id',
+                            controller: _emailController,
+                            icon: Icons.email_outlined,
                           ),
                         ],
                       ),
@@ -261,7 +256,8 @@ class _DetailPageState extends State<DetailPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => InterestScreen(),
+                                      builder: (context) =>
+                                          const InterestScreen(),
                                     ),
                                   );
                                 }
@@ -379,7 +375,7 @@ class _DetailPageState extends State<DetailPage> {
 }
 
 class InterestScreen extends StatefulWidget {
-  const InterestScreen({Key? key}) : super(key: key);
+  const InterestScreen({super.key});
 
   @override
   State<InterestScreen> createState() => _InterestScreenState();
@@ -706,8 +702,8 @@ class _InterestScreenState extends State<InterestScreen> {
                   HapticFeedback.selectionClick();
                 },
                 activeColor: const Color(0xFF4AC959),
-                fillColor: MaterialStateProperty.resolveWith<Color>((states) {
-                  if (states.contains(MaterialState.selected)) {
+                fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+                  if (states.contains(WidgetState.selected)) {
                     return const Color(0xFF4AC959);
                   }
                   return Colors.grey;

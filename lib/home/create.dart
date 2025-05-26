@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http; // For API calls
 import 'dart:convert'; // For JSON parsing
 
 class CreateTaskPage extends StatefulWidget {
-  const CreateTaskPage({Key? key}) : super(key: key);
+  const CreateTaskPage({super.key});
 
   @override
   State<CreateTaskPage> createState() => _CreateTaskPageState();
@@ -224,7 +224,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     } else {
       // Show validation error if required fields are missing
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please fill in the required fields first'),
           backgroundColor: Colors.red,
         ),
@@ -321,7 +321,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Create New Task',
           style: TextStyle(
             color: Colors.white,
@@ -329,7 +329,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         // Add a subtle gradient to the app bar
@@ -393,7 +393,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                               });
                             },
                             child: AnimatedContainer(
-                              duration: Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 200),
                               width: categoryItemWidth,
                               margin:
                                   EdgeInsets.only(right: screenWidth * 0.03),
@@ -414,7 +414,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                           color: primaryColor.withOpacity(0.3),
                                           blurRadius: 8,
                                           spreadRadius: 0,
-                                          offset: Offset(0, 2),
+                                          offset: const Offset(0, 2),
                                         )
                                       ]
                                     : null,
@@ -423,7 +423,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? primaryColor.withOpacity(0.2)
@@ -432,10 +432,10 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                     ),
                                     child: Text(
                                       category['emoji'],
-                                      style: TextStyle(fontSize: 24),
+                                      style: const TextStyle(fontSize: 24),
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  const SizedBox(height: 4),
                                   Text(
                                     category['name'],
                                     style: TextStyle(
@@ -504,7 +504,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                               }
                             },
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: _isListening
                                     ? primaryColor
@@ -574,7 +574,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                       child: ElevatedButton.icon(
                         onPressed: _isLoading ? null : _getBudgetEstimation,
                         icon: _isLoading
-                            ? SizedBox(
+                            ? const SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
@@ -582,12 +582,12 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Icon(Icons.auto_awesome, size: 20),
+                            : const Icon(Icons.auto_awesome, size: 20),
                         label: Text(
                           _isLoading
                               ? 'Estimating...'
                               : 'Get AI Budget Estimate',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -608,7 +608,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                     if (_estimationResult != null) ...[
                       Container(
                         margin: EdgeInsets.symmetric(vertical: fieldSpacing),
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: cardColor,
                           borderRadius: BorderRadius.circular(14),
@@ -624,7 +624,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                               children: [
                                 Icon(Icons.auto_awesome,
                                     color: primaryColor, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   'AI Budget Estimation',
                                   style: TextStyle(
@@ -633,7 +633,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                                     fontSize: 16,
                                   ),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 IconButton(
                                   icon: Icon(
                                     Icons.volume_up,
@@ -662,7 +662,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                         hintText: 'Your budget',
                         prefixIcon: Icons.attach_money,
                         keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
+                            const TextInputType.numberWithOptions(decimal: true),
                         isEnabled: _isBudgetFieldEnabled,
                         validator: (value) {
                           if (_isBudgetFieldEnabled &&
@@ -723,7 +723,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
 
               // Fixed Post Task button at the bottom
               AnimatedContainer(
-                duration: Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.only(
                   left: 16,
                   right: 16,
@@ -736,7 +736,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
                       blurRadius: 8,
-                      offset: Offset(0, -4),
+                      offset: const Offset(0, -4),
                     )
                   ],
                 ),
@@ -783,7 +783,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                           } else {
                             // Show error if budget estimation hasn't been done
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text(
                                     'Please get AI budget estimation first'),
                                 backgroundColor: Colors.red,
@@ -801,7 +801,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.check_circle, size: 20),
@@ -851,7 +851,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
     bool isEnabled = true,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 4),
+      margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
         color: isEnabled ? cardColor : cardColor.withOpacity(0.6),
         borderRadius: BorderRadius.circular(14),
@@ -859,7 +859,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           )
         ],
       ),
@@ -884,11 +884,11 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
-          contentPadding: EdgeInsets.symmetric(
+          contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
           ),
-          errorStyle: TextStyle(color: Colors.redAccent, fontSize: 11),
+          errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide(
@@ -912,7 +912,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 4,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             )
           ],
         ),
@@ -922,12 +922,12 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             children: [
               Icon(Icons.calendar_today,
                   color: primaryColor.withOpacity(0.7), size: 20),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Text(
                 '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
                 style: TextStyle(color: textColor),
               ),
-              Spacer(),
+              const Spacer(),
               Icon(Icons.arrow_drop_down, color: secondaryTextColor),
             ],
           ),
@@ -948,7 +948,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 4,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             )
           ],
         ),
@@ -958,12 +958,12 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
             children: [
               Icon(Icons.access_time,
                   color: primaryColor.withOpacity(0.7), size: 20),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Text(
                 _selectedTime.format(context),
                 style: TextStyle(color: textColor),
               ),
-              Spacer(),
+              const Spacer(),
               Icon(Icons.arrow_drop_down, color: secondaryTextColor),
             ],
           ),
