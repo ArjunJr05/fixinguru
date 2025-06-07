@@ -22,6 +22,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String _location = '';
   String _about = '';
   String _createdDay = '';
+  String _email = '';
   List<String> _skills = [];
 
   // Stats
@@ -69,14 +70,11 @@ class _ProfilePageState extends State<ProfilePage> {
     _locationController.dispose();
     _aboutController.dispose();
     _newSkillController.dispose();
-    _emailController.dispose(); // Add this line
+    _emailController.dispose();
     super.dispose();
   }
 
-  // Add this variable with your other user data variables
-  String _email = '';
-
-// Update the _loadUserData method to fetch email
+  // Modified _loadUserData method to fetch skills from users collection
   Future<void> _loadUserData() async {
     setState(() {
       _isLoading = true;
@@ -96,49 +94,38 @@ class _ProfilePageState extends State<ProfilePage> {
           Map<String, dynamic> userData =
               userDoc.data() as Map<String, dynamic>;
 
-          // Set user data including email
+          // Set user data including email and skills
           setState(() {
-            _firstName = userData['first_name'] ?? '';
-            _lastName = userData['last_name'] ?? '';
+            _firstName = userData['firstName'] ?? '';
+            _lastName = userData['lastName'] ?? '';
             _location = userData['location'] ?? '';
             _about = userData['about'] ?? '';
             _createdDay = userData['created_day'] ?? '';
             _email = userData['email'] ?? '';
+
+            // Extract skills from the user document
+            // Skills can be stored as a List<String> or as individual fields
+            if (userData['skills'] != null && userData['skills'] is List) {
+              _skills = List<String>.from(userData['skills']);
+            } else {
+              // If skills are stored as individual fields (skill_1, skill_2, etc.)
+              List<String> skillsList = [];
+              userData.forEach((key, value) {
+                if (key.startsWith('skill_') &&
+                    value is String &&
+                    value.isNotEmpty) {
+                  skillsList.add(value);
+                }
+              });
+              _skills = skillsList;
+            }
 
             // Initialize controllers
             _firstNameController.text = _firstName;
             _lastNameController.text = _lastName;
             _locationController.text = _location;
             _aboutController.text = _about;
-            _emailController.text = _email; // Add this line
-          });
-
-          // Fetch skills document
-          DocumentSnapshot skillsDoc =
-              await _firestore.collection('skill').doc(_phoneNumber).get();
-
-          List<String> skillsList = [];
-          if (skillsDoc.exists) {
-            Map<String, dynamic> skillsData =
-                skillsDoc.data() as Map<String, dynamic>;
-
-            // Extract all string values that aren't metadata fields
-            skillsData.forEach((key, value) {
-              if (value is String &&
-                  key != 'about' &&
-                  key != 'created_day' &&
-                  key != 'email' &&
-                  key != 'first_name' &&
-                  key != 'last_name' &&
-                  key != 'location' &&
-                  key != 'password') {
-                skillsList.add(value);
-              }
-            });
-          }
-
-          setState(() {
-            _skills = skillsList;
+            _emailController.text = _email;
           });
         }
       }
@@ -151,6 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Modified _saveProfileChanges method to save skills in users collection
   Future<void> _saveProfileChanges() async {
     if (_phoneNumber == null) return;
 
@@ -159,30 +147,37 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
-      // Update user document
-      await _firestore.collection('users').doc(_phoneNumber).update({
-        'first_name': _firstNameController.text,
-        'last_name': _lastNameController.text,
+      // Prepare update data
+      Map<String, dynamic> updateData = {
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
         'location': _locationController.text,
         'about': _aboutController.text,
-        'email': _emailController.text, // Add this line to update email
-      });
+        'email': _emailController.text,
+        'skills': _skills, // Save skills as an array
+      };
 
-      // Create a map for skills where each skill is a separate field
-      Map<String, dynamic> skillsMap = {};
-      for (int i = 0; i < _skills.length; i++) {
-        skillsMap['skill_${i + 1}'] = _skills[i];
+      // Also save skills as individual fields for backward compatibility (optional)
+      // Remove old skill fields first
+      DocumentSnapshot currentDoc =
+          await _firestore.collection('users').doc(_phoneNumber).get();
+      if (currentDoc.exists) {
+        Map<String, dynamic> currentData =
+            currentDoc.data() as Map<String, dynamic>;
+        currentData.forEach((key, value) {
+          if (key.startsWith('skill_')) {
+            updateData[key] = FieldValue.delete();
+          }
+        });
       }
 
-      // Update the skills document
-      await _firestore.collection('skill').doc(_phoneNumber).set({
-        ...skillsMap,
-        'about': _aboutController.text,
-        'created_day': _createdDay,
-        'first_name': _firstNameController.text,
-        'last_name': _lastNameController.text,
-        'location': _locationController.text,
-      }, SetOptions(merge: true));
+      // Add new skill fields
+      for (int i = 0; i < _skills.length; i++) {
+        updateData['skill_${i + 1}'] = _skills[i];
+      }
+
+      // Update user document with all data including skills
+      await _firestore.collection('users').doc(_phoneNumber).update(updateData);
 
       // Refresh data
       await _loadUserData();
@@ -407,51 +402,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ],
                 ),
-              SizedBox(height: 4),
-              // Email
-              // Email
-              Row(
-                children: [
-                  Icon(
-                    Icons.email,
-                    color: secondaryTextColor,
-                    size: 14,
-                  ),
-                  SizedBox(width: 4),
-                  isEditingMode
-                      ? Expanded(
-                          child: TextField(
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: isSmallScreen ? 10 : 12,
-                            ),
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 4, horizontal: 8),
-                              filled: true,
-                              fillColor: cardColor,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4),
-                                borderSide: BorderSide(color: primaryColor),
-                              ),
-                              hintText: "Email",
-                              hintStyle: TextStyle(color: Colors.grey),
-                            ),
-                            controller: TextEditingController(
-                                text: _email), // Add this controller
-                          ),
-                        )
-                      : Text(
-                          _email.isNotEmpty
-                              ? _email
-                              : "No email provided", // Use the _email variable
-                          style: TextStyle(
-                            color: secondaryTextColor,
-                            fontSize: isSmallScreen ? 10 : 12,
-                          ),
-                        ),
-                ],
-              ),
+
               SizedBox(height: 4),
               // Member since
               Row(
@@ -710,9 +661,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Other existing methods (_buildStatsOverview, _buildReviewsSection, etc.) remain the same
-  // Just replace the hardcoded values with your variables
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -770,18 +718,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // The rest of your existing widget methods (_buildStatsOverview, _buildReviewsSection, etc.)
-  // should remain the same, just make sure to replace any hardcoded values with your variables
-  // For brevity, I'm not including them all here, but they should be in your original code
-
+  // Placeholder methods - include your existing implementations
   Widget _buildStatsOverview(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
 
-    // Use the appropriate stats based on the current view
     final stats = isTaskerView ? taskerStats : clientStats;
 
-    // Generate stat cards
     List<Widget> statCards = [];
 
     if (isTaskerView) {
@@ -857,7 +800,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildReviewsSection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
-    // Sample reviews - in a real app, you'd fetch these from Firestore
     final List<ReviewItem> reviews = [
       ReviewItem(
         name: "Sarah M.",
@@ -955,7 +897,6 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(height: 6),
           Row(
             children: [
-              // Task name
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -971,7 +912,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               SizedBox(width: 8),
-              // Rating stars
               ...List.generate(5, (index) {
                 return Icon(
                   index < review.rating ? Icons.star : Icons.star_border,
@@ -997,7 +937,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildTaskHistorySection(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 360;
 
-    // Sample task history - in a real app, fetch from Firestore
     final List<TaskItem> taskHistory = [
       TaskItem(
         name: "Furniture Assembly",

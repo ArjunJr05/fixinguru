@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "927523843077",
-    "project_id": "fixinguru2",
-    "storage_bucket": "fixinguru2.firebasestorage.app"
+    "project_number": "139178927321",
+    "project_id": "fixinguru-13876",
+    "storage_bucket": "fixinguru-13876.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:927523843077:android:69231a2af29b93e7d6c06c",
+        "mobilesdk_app_id": "1:139178927321:android:fb46d8a900f39d56980ac8",
         "android_client_info": {
           "package_name": "com.example.fixinguru"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "139178927321-7qifdhdic7ctv670r0dagjp6j1rnsm6b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCQYBrYFgiNNcgtv5p9eoLSy42FXuvsUzg"
+          "current_key": "AIzaSyC9sKb1j8UK0VnXNfoQGQYzmmnaXTPMfTU"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139178927321-7qifdhdic7ctv670r0dagjp6j1rnsm6b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

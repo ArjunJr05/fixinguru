@@ -50,14 +50,14 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     // Wait for 4 seconds (splash screen duration)
     await Future.delayed(const Duration(seconds: 4));
-    
+
     // Check if user is already logged in
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     String? phoneNumber = prefs.getString('phoneNumber');
-    
+
     if (!mounted) return;
-    
+
     if (isLoggedIn && phoneNumber != null) {
       // User is logged in, navigate to main page
       Navigator.pushReplacement(
@@ -100,27 +100,27 @@ class _SplashScreenState extends State<SplashScreen> {
 class LoginStateManager {
   static const String _isLoggedInKey = 'isLoggedIn';
   static const String _phoneNumberKey = 'phoneNumber';
-  
+
   // Save login state when user successfully logs in
   static Future<void> saveLoginState(String phoneNumber) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isLoggedInKey, true);
     await prefs.setString(_phoneNumberKey, phoneNumber);
   }
-  
+
   // Clear login state when user logs out
   static Future<void> clearLoginState() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(_isLoggedInKey);
     await prefs.remove(_phoneNumberKey);
   }
-  
+
   // Check if user is logged in
   static Future<bool> isLoggedIn() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_isLoggedInKey) ?? false;
   }
-  
+
   // Get saved phone number
   static Future<String?> getSavedPhoneNumber() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

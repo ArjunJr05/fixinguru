@@ -1,18 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.fixinguru">
+
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Microphone permissions for speech recognition -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <!-- Storage permissions -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" /> <!-- For Android 11+ -->
-    
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
     <application
         android:label="fixinguru"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
+
+        <!-- ✅ Add this meta-data tag here -->
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -22,26 +27,22 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
+
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-                          
-        <!-- Add this provider for share_plus functionality -->
+
         <provider
             android:name="dev.fluttercommunity.plus.share.ShareFileProvider"
             android:authorities="${applicationId}.flutter.share_provider"
@@ -52,18 +53,15 @@
                 android:resource="@xml/flutter_share_file_paths"/>
         </provider>
     </application>
-      
-    <!-- Combined queries section with all intents -->
+
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- Added TTS service query -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
-        <!-- Existing share_plus and url_launcher queries -->
         <intent>
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="*/*" />
@@ -76,7 +74,6 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
         </intent>
-        <!-- Storage access intent -->
         <intent>
             <action android:name="android.intent.action.OPEN_DOCUMENT" />
             <category android:name="android.intent.category.OPENABLE" />

@@ -1,45 +1,434 @@
+import 'package:fixinguru/login/captch.dart';
 import 'package:fixinguru/login/otp.dart';
+import 'package:fixinguru/login/password.dart';
+import 'package:fixinguru/login/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math';
-import 'package:fixinguru/login/password.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
-
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // Controllers for the form fields
   final _phoneController = TextEditingController();
   bool acceptTerms = false;
   bool receiveUpdates = false;
+  bool _isLoading = false;
+  bool _isCaptchaVerified = false;
 
-  // Function to check if both boxes are ticked and phone is entered
+  final PhoneAuthService _phoneAuthService = PhoneAuthService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Store verification ID globally to handle reCAPTCHA flow
+  String? _currentVerificationId;
+  int? _resendToken;
+
   bool get canContinue =>
-      acceptTerms && receiveUpdates && _phoneController.text.isNotEmpty;
+      acceptTerms &&
+      receiveUpdates &&
+      _phoneController.text.isNotEmpty &&
+      _isCaptchaVerified &&
+      !_isLoading;
 
   @override
   void initState() {
     super.initState();
-    // Add listeners to controllers to check form validity
-    _phoneController.addListener(_checkFormValidity);
+    _phoneController.addListener(_onPhoneChanged);
+
+    // Configure Firebase Auth settings to handle reCAPTCHA properly
+    _configureFirebaseAuth();
+  }
+
+  void _configureFirebaseAuth() {
+    // Enable app verification for production
+    _auth.setSettings(
+      appVerificationDisabledForTesting: false,
+      userAccessGroup: null,
+    );
   }
 
   @override
   void dispose() {
-    // Clean up controller
+    _phoneController.removeListener(_onPhoneChanged);
     _phoneController.dispose();
     super.dispose();
   }
 
-  // Check if all fields are filled and checkboxes are ticked
-  void _checkFormValidity() {
+  void _onCaptchaVerified(dynamic isVerified) {
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _isCaptchaVerified = isVerified is bool ? isVerified : false;
+        });
+      });
+    }
+  }
+
+  void _onPhoneChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // Check if phone number already exists in Firestore
+  Future<bool> _checkPhoneExists(String phoneNumber) async {
+    try {
+      // Clean phone number to match Firestore format
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+      final phoneWithoutCountryCode = cleanPhone.length > 10
+          ? cleanPhone.substring(cleanPhone.length - 10)
+          : cleanPhone;
+
+      // Check in users collection
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('phone', isEqualTo: phoneWithoutCountryCode)
+          .limit(1)
+          .get();
+
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking phone existence: $e');
+      return false;
+    }
+  }
+
+  // Show phone already exists dialog
+  void _showPhoneExistsDialog(String phoneNumber) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF2C2C2C),
+                  const Color(0xFF1A1A1A),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4AC959).withOpacity(0.3),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon with animation
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF4AC959).withOpacity(0.2),
+                        const Color(0xFF4AC959).withOpacity(0.1),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: const Color(0xFF4AC959),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.phone_android_rounded,
+                    color: Color(0xFF4AC959),
+                    size: 40,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Title
+                const Text(
+                  'Phone Number Already Exists',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Message
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: 'The phone number ',
+                      ),
+                      TextSpan(
+                        text: phoneNumber,
+                        style: const TextStyle(
+                          color: Color(0xFF4AC959),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const TextSpan(
+                        text:
+                            ' is already registered with FixinGuru.\n\nPlease try logging in or use a different phone number.',
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Try Different Number Button
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _phoneController.clear();
+                          setState(() {
+                            _isCaptchaVerified = false;
+                          });
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(
+                              color: Color(0xFF4AC959),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: const Text(
+                          'Try Different',
+                          style: TextStyle(
+                            color: Color(0xFF4AC959),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    // Login Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context)
+                              .pop(); // Go back to login screen
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4AC959),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Login Instead',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _sendOTP() async {
+    if (!canContinue) return;
+
     setState(() {
-      // Updates will happen through setStates elsewhere
+      _isLoading = true;
     });
+
+    String formattedPhone = _phoneAuthService.formatPhoneNumber(
+      _phoneController.text.trim(),
+      '91',
+    );
+
+    try {
+      // First, check if phone number already exists
+      bool phoneExists = await _checkPhoneExists(formattedPhone);
+
+      if (phoneExists) {
+        setState(() {
+          _isLoading = false;
+        });
+        // Show the phone exists dialog
+        _showPhoneExistsDialog(_phoneController.text.trim());
+        return;
+      }
+
+      // If phone doesn't exist, proceed with OTP verification
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+
+        // Increased timeout to handle network issues
+        timeout: const Duration(seconds: 120),
+
+        // Force resending token for subsequent attempts
+        forceResendingToken: _resendToken,
+
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification completed (rarely happens on Android)
+          try {
+            await _auth.signInWithCredential(credential);
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+              _navigateToPasswordPage(formattedPhone);
+            }
+          } catch (e) {
+            if (mounted) {
+              _showError('Auto-verification failed: ${e.toString()}');
+            }
+          }
+        },
+
+        verificationFailed: (FirebaseAuthException e) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+
+            String errorMessage = 'Verification failed';
+
+            if (e.code == 'too-many-requests') {
+              errorMessage = 'Please wait before requesting another code';
+            } else if (e.code == 'invalid-phone-number') {
+              errorMessage = 'Invalid phone number format';
+            } else if (e.code == 'quota-exceeded') {
+              errorMessage = 'SMS quota exceeded. Please try again later';
+            } else {
+              errorMessage = e.message ?? 'Unknown error occurred';
+            }
+
+            _showError(errorMessage);
+          }
+        },
+
+        codeSent: (String verificationId, int? resendToken) {
+          // Store verification details
+          _currentVerificationId = verificationId;
+          _resendToken = resendToken;
+
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+
+            // Navigate to OTP screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpVerificationScreen(
+                  phoneNumber: formattedPhone,
+                  verificationId: verificationId,
+                  resendToken: resendToken,
+                ),
+              ),
+            );
+          }
+        },
+
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Update verification ID when timeout occurs
+          _currentVerificationId = verificationId;
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showError('Error: ${e.toString()}');
+      }
+    }
+  }
+
+  void _navigateToPasswordPage(String phoneNumber) {
+    final phoneNumberDigits = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final phoneNumberWithoutCountryCode = phoneNumberDigits.length > 10
+        ? phoneNumberDigits.substring(phoneNumberDigits.length - 10)
+        : phoneNumberDigits;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PasswordPage(
+          phoneNumber: phoneNumberWithoutCountryCode,
+        ),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFE57373),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -71,7 +460,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final checkboxScale = max(min(size.width * 0.003, 1.2), 0.9);
 
     return Scaffold(
-      // Allow content to resize when keyboard appears
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
@@ -136,9 +524,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
 
-                          SizedBox(height: spacingHeight * 5),
+                          SizedBox(height: spacingHeight * 3),
 
-                          // phone field with responsive sizing
+                          // Phone field with responsive sizing
                           _buildInputField(
                             context: context,
                             label: 'Phone Number',
@@ -149,6 +537,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             labelFontSize: labelFontSize,
                             hintFontSize: hintFontSize,
                             iconSize: iconSize,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                          ),
+
+                          SizedBox(height: spacingHeight * 1.5),
+
+                          // Captcha Widget
+                          CaptchaWidget(
+                            onCaptchaVerified: _onCaptchaVerified,
+                            primaryColor: const Color(0xFF4AC959),
+                            backgroundColor: const Color(0xFF212121),
+                            textColor: Colors.white,
+                            initialVerifiedState: false,
                           ),
 
                           SizedBox(height: spacingHeight * 1.5),
@@ -161,7 +564,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               setState(() {
                                 acceptTerms = value!;
                               });
-                              _checkFormValidity();
                             },
                             textSpan: TextSpan(
                               text: 'I hereby accept the general ',
@@ -195,7 +597,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               setState(() {
                                 receiveUpdates = value!;
                               });
-                              _checkFormValidity();
                             },
                             textSpan: TextSpan(
                               text:
@@ -218,7 +619,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                           SizedBox(height: spacingHeight * 2),
 
-                          // Continue button with responsive sizing
+                          // Continue button with responsive sizing and loading state
                           Center(
                             child: SizedBox(
                               width: min(size.width * 0.8, 320),
@@ -236,126 +637,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                                onPressed: canContinue
-                                    ? () {
-                                        // Add haptic feedback
-                                        HapticFeedback.mediumImpact();
-                                        // Navigate to password page
-                                        Navigator.push(
-                                          context,
-            //                               MaterialPageRoute(
-            // builder: (context) => OtpVerificationScreen(
-            //   phoneNumber: _phoneController.text,
-            // ),
-            //                               ),
-            MaterialPageRoute(
-            builder: (context) => OtpVerificationScreen(phoneNumber: '',)
+                                onPressed: canContinue ? _sendOTP : null,
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Text(
+                                            'Send OTP',
+                                            style: TextStyle(
+                                              fontSize: buttonFontSize /
+                                                  textScaleFactor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        );
-                                      }
-                                    : null,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Text(
-                                      'Continue',
-                                      style: TextStyle(
-                                        fontSize:
-                                            buttonFontSize / textScaleFactor,
-                                        fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
                               ),
                             ),
                           ),
-
-                          SizedBox(height: spacingHeight),
-
-                          // OR SIGN UP WITH - with dividers
-                          const Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.white,
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'OR SIGN UP WITH',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.white,
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: spacingHeight),
-
-                          // Social login buttons with responsive sizing
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildSocialButton(
-                                context: context,
-                                image: 'assets/images/google.png',
-                                backgroundColor: Colors.white,
-                                imageColor: null,
-                                onPressed: () {
-                                  // Google login logic
-                                  HapticFeedback.mediumImpact();
-                                },
-                              ),
-                              SizedBox(width: max(size.width * 0.05, 16)),
-                              _buildSocialButton(
-                                context: context,
-                                image: 'assets/images/facebook.png',
-                                backgroundColor: Colors.blue[600]!,
-                                imageColor: Colors.white,
-                                onPressed: () {
-                                  // Facebook login logic
-                                  HapticFeedback.mediumImpact();
-                                },
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: spacingHeight),
-
-                          // Already signed in link
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                'Already joined FixinGuru?',
-                                style: TextStyle(
-                                  color: const Color(0xFF4AC959),
-                                  fontSize: hintFontSize,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          SizedBox(height: spacingHeight),
                         ],
                       ),
                     ),
@@ -369,7 +678,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Improved input field builder with responsive parameters
   Widget _buildInputField({
     required BuildContext context,
     required String label,
@@ -443,15 +751,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             suffixIcon: suffixIcon,
           ),
-          onChanged: (value) {
-            _checkFormValidity();
-          },
+          onChanged: (value) => _onPhoneChanged(),
         ),
       ],
     );
   }
 
-  // Custom checkbox builder with responsive text
   Widget _buildCheckbox({
     required BuildContext context,
     required bool value,
@@ -483,7 +788,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Improved social button builder with responsive sizing
   Widget _buildSocialButton({
     required BuildContext context,
     required String image,
@@ -522,30 +826,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-// Background painter for dual colors - same as login screen
 class BackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Paint for grey area (above the line)
     final greyPaint = Paint()
       ..color = const Color(0xFF212121)
       ..style = PaintingStyle.fill;
 
-    // Paint for black area (below the line)
     final blackPaint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.fill;
 
-    // Responsive curve height - works better on various screen sizes
     double curveHeight = size.height * 0.28;
 
-    // Path for the upper grey section
     final greyPath = Path();
     greyPath.moveTo(0, 0);
     greyPath.lineTo(size.width, 0);
     greyPath.lineTo(size.width, curveHeight);
 
-    // Create the curve that separates grey and black
     greyPath.quadraticBezierTo(
       size.width * 0.1,
       curveHeight - size.height * 0.08,
@@ -555,7 +853,6 @@ class BackgroundPainter extends CustomPainter {
 
     greyPath.close();
 
-    // Path for the lower black section
     final blackPath = Path();
     blackPath.moveTo(0, curveHeight - size.height * 0.05);
     blackPath.quadraticBezierTo(
@@ -568,7 +865,6 @@ class BackgroundPainter extends CustomPainter {
     blackPath.lineTo(0, size.height);
     blackPath.close();
 
-    // Draw both sections
     canvas.drawPath(greyPath, greyPaint);
     canvas.drawPath(blackPath, blackPaint);
   }
@@ -577,11 +873,9 @@ class BackgroundPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
-// Green curve painter with responsive stroke width - same as login screen
 class CurvePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Responsive stroke width calculation
     final strokeWidth = max(min(size.width * 0.01, 5.0), 2.0);
 
     final paint = Paint()
@@ -590,7 +884,6 @@ class CurvePainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    // Match curve height with background curve
     double curveHeight = size.height * 0.28;
 
     final path = Path();
@@ -602,7 +895,6 @@ class CurvePainter extends CustomPainter {
       curveHeight,
     );
 
-    // Add a glow effect to the curve with responsive blur size
     final glowSize = max(min(size.width * 0.02, 10.0), 4.0);
     final glowPaint = Paint()
       ..color = const Color(0xFF4AC959).withOpacity(0.3)

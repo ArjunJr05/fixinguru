@@ -164,8 +164,8 @@ class _MainPageState extends State<MainPage>
               userDoc.data() as Map<String, dynamic>;
 
           setState(() {
-            _firstName = userData['first_name'] ?? '';
-            _lastName = userData['last_name'] ?? '';
+            _firstName = userData['firstName'] ?? '';
+            _lastName = userData['lastName'] ?? '';
             _phoneNumber = phoneNumber;
             _profilePhotoUrl = userData['profile_photo_url'];
 

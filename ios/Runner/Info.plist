@@ -2,87 +2,109 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Fixinguru</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>fixinguru</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	
-	<!-- Microphone and Speech Recognition permissions -->
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs microphone access to record voice for task descriptions</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app uses speech recognition to convert your speech to text</string>
-	
-	<!-- Storage permissions -->
-	<key>NSDocumentsFolderUsageDescription</key>
-	<string>This app requires access to the documents folder to save and read files</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>This app requires access to the downloads folder to save and read files</string>
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
-	<key>NSFileProviderPresenceUsageDescription</key>
-	<string>This app needs to access files for saving and reading user data</string>
-	<key>NSFileProviderDomainUsageDescription</key>
-	<string>This app requires access to file storage to save your data</string>
-	
-	<!-- Share and photo library permissions -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library for sharing images</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app requires permission to save images to your photo library</string>
-	
-	<!-- URL schemes for external app communication -->
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>https</string>
-		<string>http</string>
-		<string>whatsapp</string>
-		<string>tel</string>
-		<string>mailto</string>
-		<string>sms</string>
-		<string>file</string>
-		<string>content</string>
-	</array>
+    <!-- URL Schemes for Google OAuth -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.googleusercontent.apps.139178927321-p112tlahtep0aksndjbtpkh09cdborma</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.139178927321-p112tlahtep0aksndjbtpkh09cdborma</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- Basic App Information -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Fixinguru</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>fixinguru</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    
+    <!-- iOS Specific Settings -->
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    
+    <!-- Interface Orientations for iPhone -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <!-- Interface Orientations for iPad -->
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <!-- Performance Settings -->
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    
+    <!-- Audio & Speech Permissions -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs microphone access to record voice for task descriptions</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>This app uses speech recognition to convert your speech to text</string>
+    
+    <!-- File System Permissions -->
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>This app requires access to the documents folder to save and read files</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>This app requires access to the downloads folder to save and read files</string>
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>NSFileProviderPresenceUsageDescription</key>
+    <string>This app needs to access files for saving and reading user data</string>
+    <key>NSFileProviderDomainUsageDescription</key>
+    <string>This app requires access to file storage to save your data</string>
+    
+    <!-- Photo Library Permissions -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app requires access to the photo library for sharing images</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>This app requires permission to save images to your photo library</string>
+    
+    <!-- URL Schemes the App Can Open -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>https</string>
+        <string>http</string>
+        <string>whatsapp</string>
+        <string>tel</string>
+        <string>mailto</string>
+        <string>sms</string>
+        <string>file</string>
+        <string>content</string>
+    </array>
 </dict>
 </plist>

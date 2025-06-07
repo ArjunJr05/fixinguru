@@ -7,6 +7,300 @@ import 'package:fixinguru/login/signup.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// CAPTCHA Widget
+class CaptchaWidget extends StatefulWidget {
+  final Function(bool) onCaptchaVerified;
+  final Color primaryColor;
+  final Color backgroundColor;
+  final Color textColor;
+  final bool initialVerifiedState;
+
+  const CaptchaWidget({
+    Key? key,
+    required this.onCaptchaVerified,
+    this.primaryColor = const Color(0xFF4AC959),
+    this.backgroundColor = const Color(0xFF212121),
+    this.textColor = Colors.white,
+    this.initialVerifiedState = false,
+  }) : super(key: key);
+
+  @override
+  State<CaptchaWidget> createState() => _CaptchaWidgetState();
+}
+
+class _CaptchaWidgetState extends State<CaptchaWidget> {
+  final TextEditingController _captchaController = TextEditingController();
+  String _captchaText = '';
+  late bool _isVerified;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _isVerified = widget.initialVerifiedState;
+    _generateCaptcha();
+  }
+
+  @override
+  void dispose() {
+    _captchaController.dispose();
+    super.dispose();
+  }
+
+  void _generateCaptcha() {
+    final random = Random();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    _captchaText = String.fromCharCodes(
+      Iterable.generate(
+          5, (_) => chars.codeUnitAt(random.nextInt(chars.length))),
+    );
+    setState(() {
+      _isVerified = false;
+      _errorMessage = '';
+      _captchaController.clear();
+    });
+    widget.onCaptchaVerified(false);
+  }
+
+  // Method to verify captcha - called externally
+  bool verifyCaptcha() {
+    final userInput = _captchaController.text.toUpperCase().trim();
+    if (userInput == _captchaText) {
+      setState(() {
+        _isVerified = true;
+        _errorMessage = '';
+      });
+      widget.onCaptchaVerified(true);
+      return true;
+    } else {
+      setState(() {
+        _isVerified = false;
+        _errorMessage = 'Incorrect captcha. Please try again.';
+      });
+      widget.onCaptchaVerified(false);
+      _generateCaptcha();
+      return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    // Responsive font sizes
+    final titleFontSize = max(min(size.width / 30, 16.0), 12.0);
+    final buttonFontSize = max(min(size.width / 28, 16.0), 12.0);
+    final hintFontSize = max(min(size.width / 32, 14.0), 10.0);
+    final iconSize = max(min(size.width * 0.06, 24.0), 16.0);
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      decoration: BoxDecoration(
+        color: widget.backgroundColor.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isVerified ? widget.primaryColor : Colors.grey[600]!,
+          width: _isVerified ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Security Verification',
+            style: TextStyle(
+              color: widget.textColor,
+              fontSize: titleFontSize / textScaleFactor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 8 : 12),
+
+          // Captcha display
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Container(
+                  padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                  height: max(min(size.height * 0.08, 50), 35),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[400]!),
+                  ),
+                  child: CustomPaint(
+                    size: const Size(double.infinity, double.infinity),
+                    painter: CaptchaPainter(_captchaText),
+                  ),
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 4 : 8),
+              IconButton(
+                onPressed: _generateCaptcha,
+                icon: Icon(
+                  Icons.refresh,
+                  color: widget.primaryColor,
+                  size: iconSize,
+                ),
+                tooltip: 'Generate new captcha',
+                padding: EdgeInsets.all(isSmallScreen ? 4 : 8),
+                constraints: BoxConstraints(
+                  minWidth: iconSize + 8,
+                  minHeight: iconSize + 8,
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: isSmallScreen ? 8 : 12),
+
+          // Input field
+          TextField(
+            controller: _captchaController,
+            style: TextStyle(
+              color: widget.textColor,
+              fontSize: buttonFontSize / textScaleFactor,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Enter captcha code',
+              hintStyle: TextStyle(
+                color: Colors.grey[500],
+                fontSize: hintFontSize / textScaleFactor,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 8 : 12,
+                vertical: isSmallScreen ? 6 : 8,
+              ),
+              filled: true,
+              fillColor: Colors.grey[850]!.withOpacity(0.5),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[600]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: widget.primaryColor, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              suffixIcon: _isVerified
+                  ? Icon(
+                      Icons.check_circle,
+                      color: widget.primaryColor,
+                      size: iconSize * 0.8,
+                    )
+                  : null,
+            ),
+            textCapitalization: TextCapitalization.characters,
+          ),
+
+          if (_errorMessage.isNotEmpty) ...[
+            SizedBox(height: isSmallScreen ? 4 : 8),
+            Text(
+              _errorMessage,
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: hintFontSize / textScaleFactor,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class CaptchaPainter extends CustomPainter {
+  final String text;
+
+  CaptchaPainter(this.text);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = Random();
+
+    // Draw background noise lines
+    final noisePaint = Paint()
+      ..color = Colors.grey[400]!
+      ..strokeWidth = 1;
+
+    for (int i = 0; i < 6; i++) {
+      canvas.drawLine(
+        Offset(random.nextDouble() * size.width,
+            random.nextDouble() * size.height),
+        Offset(random.nextDouble() * size.width,
+            random.nextDouble() * size.height),
+        noisePaint,
+      );
+    }
+
+    // Draw noise dots
+    final dotPaint = Paint()..color = Colors.grey[500]!;
+    for (int i = 0; i < 30; i++) {
+      canvas.drawCircle(
+        Offset(random.nextDouble() * size.width,
+            random.nextDouble() * size.height),
+        1.0,
+        dotPaint,
+      );
+    }
+
+    // Draw captcha text
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+
+    final charWidth = size.width / text.length;
+    final baseFontSize = min(size.height * 0.6, 20);
+
+    for (int i = 0; i < text.length; i++) {
+      final char = text[i];
+      final colors = [
+        Colors.black,
+        Colors.blue[800]!,
+        Colors.red[800]!,
+        Colors.green[800]!
+      ];
+      final color = colors[random.nextInt(colors.length)];
+
+      textPainter.text = TextSpan(
+        text: char,
+        style: TextStyle(
+          color: color,
+          fontSize: baseFontSize + random.nextInt(4).toDouble(),
+          fontWeight: FontWeight.bold,
+          fontFamily: random.nextBool() ? 'monospace' : null,
+        ),
+      );
+
+      textPainter.layout();
+
+      final xOffset = i * charWidth + (charWidth - textPainter.width) / 2;
+      final yOffset = (size.height - textPainter.height) / 2 +
+          (random.nextDouble() - 0.5) * 6;
+
+      canvas.save();
+      canvas.translate(
+          xOffset + textPainter.width / 2, yOffset + textPainter.height / 2);
+      canvas.rotate((random.nextDouble() - 0.5) * 0.2);
+      canvas.translate(-textPainter.width / 2, -textPainter.height / 2);
+
+      textPainter.paint(canvas, Offset.zero);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+}
+
+// Main Login Screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,16 +312,23 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controllers for the form fields
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final GlobalKey<_CaptchaWidgetState> _captchaKey =
+      GlobalKey<_CaptchaWidgetState>();
   bool _isFormValid = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isCaptchaVerified = false;
 
   @override
   void initState() {
     super.initState();
-    // Add listeners to controllers to check form validity
     _phoneController.addListener(_checkFormValidity);
     _passwordController.addListener(_checkFormValidity);
+
+    // Defer initial check to avoid build phase issues
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFormValidity();
+    });
   }
 
   @override
@@ -38,11 +339,30 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // Check if all fields are filled
+  // Check if all fields are filled (captcha verification happens on continue)
   void _checkFormValidity() {
-    setState(() {
-      _isFormValid = _phoneController.text.isNotEmpty &&
-          _passwordController.text.isNotEmpty;
+    final isValid =
+        _phoneController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+
+    if (_isFormValid != isValid) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _isFormValid = isValid;
+          });
+        }
+      });
+    }
+  }
+
+  // Handle captcha verification
+  void _onCaptchaVerified(bool isVerified) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isCaptchaVerified = isVerified;
+        });
+      }
     });
   }
 
@@ -56,6 +376,11 @@ class _LoginScreenState extends State<LoginScreen> {
   // Login function to authenticate with Firestore
   Future<void> _login() async {
     if (!_isFormValid) return;
+
+    // First verify captcha
+    if (!_captchaKey.currentState!.verifyCaptcha()) {
+      return; // Captcha verification failed, error message will be shown
+    }
 
     setState(() {
       _isLoading = true;
@@ -89,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (storedPassword == password) {
             // Login successful - Save login state
             await _saveLoginState(phoneNumber);
-            
+
             HapticFeedback.mediumImpact();
 
             // Navigate to main page
@@ -189,7 +514,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       // Allow content to resize when keyboard appears
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           // Background with dual colors
@@ -232,7 +557,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Center(
                             child: Image.asset(
                               'assets/images/login.png',
-                              height: min(size.height * 0.25, 180),
+                              height: min(size.height * 0.2, 150),
                             ),
                           ),
 
@@ -241,7 +566,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Form fields container with adaptive sizing
                           Container(
                             padding: EdgeInsets.all(containerPadding),
-                            height: 250,
                             decoration: BoxDecoration(
                               color: Colors.grey[900]!.withOpacity(0.5),
                               borderRadius: BorderRadius.circular(20),
@@ -305,11 +629,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                                   ),
                                 ),
+
+                                SizedBox(height: spacingHeight * 1.5),
+
+                                // CAPTCHA Widget
+                                CaptchaWidget(
+                                  key: _captchaKey,
+                                  onCaptchaVerified: _onCaptchaVerified,
+                                  primaryColor: const Color(0xFF4AC959),
+                                  backgroundColor: const Color(0xFF212121),
+                                  textColor: Colors.white,
+                                ),
                               ],
                             ),
                           ),
 
-                          SizedBox(height: spacingHeight * 0.8),
+                          SizedBox(height: spacingHeight * 1.2),
 
                           // Continue button with responsive sizing and loading state
                           Center(
@@ -361,73 +696,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-
-                          SizedBox(height: spacingHeight * 0.8),
-
-                          // OR LOG IN WITH - with FittedBox for better text scaling
-                          const Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.white,
-                                  thickness: 1,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'OR LOG IN WITH',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: Colors.white,
-                                  thickness: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: spacingHeight * 0.8),
-
-                          // Social login buttons with responsive sizing
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildSocialButton(
-                                context: context,
-                                image: 'assets/images/google.png',
-                                backgroundColor: Colors.white,
-                                imageColor: null,
-                                onPressed: () {
-                                  // Google login logic
-                                  HapticFeedback.mediumImpact();
-                                },
-                              ),
-                              SizedBox(width: max(size.width * 0.05, 16)),
-                              _buildSocialButton(
-                                context: context,
-                                image: 'assets/images/facebook.png',
-                                backgroundColor: Colors.blue[600]!,
-                                imageColor: Colors.white,
-                                onPressed: () {
-                                  // Facebook login logic
-                                  HapticFeedback.mediumImpact();
-                                },
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: spacingHeight * 0.8),
-
-                          // Register link with adaptable text sizing
+                          SizedBox(height: spacingHeight * 0.4),
                           Center(
                             child: Column(
                               children: [
@@ -552,49 +821,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             suffixIcon: suffixIcon,
           ),
-          onChanged: (value) {
-            // This triggers the listener which calls _checkFormValidity
-          },
+          // Removed onChanged callback that was causing the issue
         ),
       ],
-    );
-  }
-
-  // Improved social button builder with responsive sizing
-  Widget _buildSocialButton({
-    required BuildContext context,
-    required String image,
-    required Color backgroundColor,
-    required Color? imageColor,
-    required VoidCallback onPressed,
-  }) {
-    final size = MediaQuery.of(context).size;
-    final buttonSize = max(min(size.width * 0.12, 45.0), 36.0);
-
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: buttonSize,
-        height: buttonSize,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(buttonSize / 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Image.asset(
-            image,
-            width: buttonSize * 0.6,
-            color: imageColor,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -603,27 +832,27 @@ class _LoginScreenState extends State<LoginScreen> {
 class LoginStateManager {
   static const String _isLoggedInKey = 'isLoggedIn';
   static const String _phoneNumberKey = 'phoneNumber';
-  
+
   // Save login state when user successfully logs in
   static Future<void> saveLoginState(String phoneNumber) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isLoggedInKey, true);
     await prefs.setString(_phoneNumberKey, phoneNumber);
   }
-  
+
   // Clear login state when user logs out
   static Future<void> clearLoginState() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(_isLoggedInKey);
     await prefs.remove(_phoneNumberKey);
   }
-  
+
   // Check if user is logged in
   static Future<bool> isLoggedIn() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_isLoggedInKey) ?? false;
   }
-  
+
   // Get saved phone number
   static Future<String?> getSavedPhoneNumber() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -646,7 +875,7 @@ class BackgroundPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Responsive curve height - works better on various screen sizes
-    double curveHeight = size.height * 0.34;
+    double curveHeight = size.height * 0.31;
 
     // Path for the upper grey section
     final greyPath = Path();
@@ -700,7 +929,7 @@ class CurvePainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     // Match curve height with background curve
-    double curveHeight = size.height * 0.34;
+    double curveHeight = size.height * 0.31;
 
     final path = Path();
     path.moveTo(0, curveHeight - size.height * 0.05);
@@ -711,7 +940,6 @@ class CurvePainter extends CustomPainter {
       curveHeight,
     );
 
-    // Add a glow effect to the curve with responsive blur size
     final glowSize = max(min(size.width * 0.02, 10.0), 4.0);
     final glowPaint = Paint()
       ..color = const Color(0xFF4AC959).withOpacity(0.3)

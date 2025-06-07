@@ -3,10 +3,13 @@ import 'package:fixinguru/home/mainpage.dart';
 import 'package:fixinguru/login/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // First Screen - "Tell us about Yourself"
 class DetailPage extends StatefulWidget {
-  const DetailPage({super.key});
+  final String phoneNumber; // Add phone number parameter to receive from password page
+  
+  const DetailPage({super.key, required this.phoneNumber});
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -16,8 +19,10 @@ class _DetailPageState extends State<DetailPage> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _locationController = TextEditingController();
-  final _emailController = TextEditingController();
   bool _isFormValid = false;
+  bool _isLoading = false;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -25,7 +30,6 @@ class _DetailPageState extends State<DetailPage> {
     _firstNameController.addListener(_checkFormValidity);
     _lastNameController.addListener(_checkFormValidity);
     _locationController.addListener(_checkFormValidity);
-    _emailController.addListener(_checkFormValidity);
   }
 
   @override
@@ -34,7 +38,6 @@ class _DetailPageState extends State<DetailPage> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _locationController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -43,9 +46,52 @@ class _DetailPageState extends State<DetailPage> {
     setState(() {
       _isFormValid = _firstNameController.text.isNotEmpty &&
           _lastNameController.text.isNotEmpty &&
-          _locationController.text.isNotEmpty &&
-          _emailController.text.isNotEmpty;
+          _locationController.text.isNotEmpty;
     });
+  }
+
+  // Save user details to Firestore
+  Future<void> _saveUserDetails() async {
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Update the existing user document with additional details
+      await _firestore.collection('users').doc(widget.phoneNumber).update({
+        'firstName': _firstNameController.text.trim(),
+        'lastName': _lastNameController.text.trim(),
+        'location': _locationController.text.trim(),
+        'profileCompleted': true, // Flag to indicate profile completion
+      });
+
+      // Navigate to the next page after successful save
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InterestScreen(phoneNumber: widget.phoneNumber),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save details: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -211,25 +257,16 @@ class _DetailPageState extends State<DetailPage> {
                                 Icons.my_location,
                                 color: Color(0xFF4AC959),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                // Add location detection functionality here if needed
+                              },
                             ),
-                          ),
-
-                          SizedBox(height: spacingHeight * 0.8),
-
-                          // email Number field
-                          _buildInputField(
-                            context: context,
-                            label: 'email id',
-                            hintText: 'Enter your email id',
-                            controller: _emailController,
-                            icon: Icons.email_outlined,
                           ),
                         ],
                       ),
                     ),
 
-                    SizedBox(height: spacingHeight * 0.8),
+                    SizedBox(height: spacingHeight * 1.5),
 
                     // Next button
                     Center(
@@ -249,39 +286,43 @@ class _DetailPageState extends State<DetailPage> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          onPressed: _isFormValid
+                          onPressed: _isFormValid && !_isLoading
                               ? () {
                                   // Add haptic feedback
                                   HapticFeedback.mediumImpact();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const InterestScreen(),
-                                    ),
-                                  );
+                                  _saveUserDetails();
                                 }
                               : null,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Next',
-                                style: TextStyle(
-                                  fontSize: buttonFontSize / textScaleFactor,
-                                  fontWeight: FontWeight.bold,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Next',
+                                      style: TextStyle(
+                                        fontSize:
+                                            buttonFontSize / textScaleFactor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: size.width * 0.02),
+                                    Icon(
+                                      Icons.arrow_forward,
+                                      color: _isFormValid
+                                          ? Colors.white
+                                          : Colors.grey[400],
+                                      size: buttonFontSize,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(width: size.width * 0.02),
-                              Icon(
-                                Icons.arrow_forward,
-                                color: _isFormValid
-                                    ? Colors.white
-                                    : Colors.grey[400],
-                                size: buttonFontSize,
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -375,7 +416,9 @@ class _DetailPageState extends State<DetailPage> {
 }
 
 class InterestScreen extends StatefulWidget {
-  const InterestScreen({super.key});
+  final String phoneNumber; // Add phone number parameter
+  
+  const InterestScreen({super.key, required this.phoneNumber});
 
   @override
   State<InterestScreen> createState() => _InterestScreenState();
@@ -384,6 +427,49 @@ class InterestScreen extends StatefulWidget {
 class _InterestScreenState extends State<InterestScreen> {
   // Option selection
   String selectedOption = 'both'; // Default selection
+  bool _isLoading = false;
+  
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Save interest selection to Firestore
+  Future<void> _saveInterestSelection() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Update the user document with interest selection
+      await _firestore.collection('users').doc(widget.phoneNumber).update({
+        'interest': selectedOption,
+        'onboardingCompleted': true, // Flag to indicate full onboarding completion
+      });
+
+      // Navigate to the next page after successful save
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskAlertsPage(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save interest: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -566,32 +652,39 @@ class _InterestScreenState extends State<InterestScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          onPressed: () {
-                            HapticFeedback.mediumImpact();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TaskAlertsPage(),
-                              ),
-                            );
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Submit',
-                                style: TextStyle(
-                                  fontSize: buttonFontSize / textScaleFactor,
-                                  fontWeight: FontWeight.bold,
+                          onPressed: !_isLoading
+                              ? () {
+                                  HapticFeedback.mediumImpact();
+                                  _saveInterestSelection();
+                                }
+                              : null,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Submit',
+                                      style: TextStyle(
+                                        fontSize:
+                                            buttonFontSize / textScaleFactor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: size.width * 0.02),
+                                    Icon(
+                                      Icons.check_circle_outline,
+                                      size: buttonFontSize,
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              SizedBox(width: size.width * 0.02),
-                              Icon(
-                                Icons.check_circle_outline,
-                                size: buttonFontSize,
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -716,8 +809,6 @@ class _InterestScreenState extends State<InterestScreen> {
     );
   }
 }
-
-// TaskAlertsPage placeholder (simplified but responsive)
 
 // Background painter for dual colors
 class BackgroundPainter extends CustomPainter {

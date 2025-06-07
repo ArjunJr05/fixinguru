@@ -4,9 +4,14 @@ import 'package:flutter/services.dart';
 import 'dart:math';
 import 'package:fixinguru/login/verify.dart';
 import 'package:fixinguru/front/first.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class PasswordPage extends StatefulWidget {
-  const PasswordPage({super.key});
+  final String phoneNumber;
+
+  const PasswordPage({super.key, required this.phoneNumber});
 
   @override
   State<PasswordPage> createState() => _PasswordPageState();
@@ -18,12 +23,15 @@ class _PasswordPageState extends State<PasswordPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isFormValid = false;
+  bool _isLoading = false;
 
   // Password validation flags
   bool _hasEightChars = false;
   bool _hasLettersAndNumbers = false;
   bool _hasUpperAndLowerCase = false;
   bool _passwordsMatch = false;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -87,6 +95,55 @@ class _PasswordPageState extends State<PasswordPage> {
           _hasUpperAndLowerCase &&
           _passwordsMatch;
     });
+  }
+
+  Future<void> _registerUser() async {
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Get current date and format it as "Month Year"
+      DateTime now = DateTime.now();
+      String createdDay = DateFormat('MMMM yyyy').format(now);
+
+      // Store user data in Firestore with only required fields
+      await _firestore.collection('users').doc(widget.phoneNumber).set({
+        'phoneNumber': widget.phoneNumber,
+        'password': _passwordController
+            .text, // Note: In production, you should hash this password
+        'created_day': createdDay, // Format: "June 2025"
+      }, SetOptions(merge: true));
+
+      // Navigate to the next page after successful registration
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailPage(
+                phoneNumber: widget
+                    .phoneNumber), // Changed from phoneNumber to widget.phoneNumber
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -323,12 +380,15 @@ class _PasswordPageState extends State<PasswordPage> {
 
                           SizedBox(height: spacingHeight * 2),
 
-                          // Register button with responsive sizing
+                          // Register button with responsive sizing - FIXED
                           Center(
                             child: SizedBox(
                               width: min(size.width * 0.8, 320),
                               height: buttonHeight,
                               child: ElevatedButton(
+                                onPressed: _isFormValid && !_isLoading
+                                    ? _registerUser
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4AC959),
                                   foregroundColor: Colors.white,
@@ -341,34 +401,30 @@ class _PasswordPageState extends State<PasswordPage> {
                                     borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                                onPressed: _isFormValid
-                                    ? () {
-                                        // Add haptic feedback
-                                        HapticFeedback.mediumImpact();
-                                        // Navigate to next page (verification)
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const DetailPage(),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Text(
+                                            'Register',
+                                            style: TextStyle(
+                                              fontSize: buttonFontSize /
+                                                  textScaleFactor,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        );
-                                      }
-                                    : null,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0),
-                                    child: Text(
-                                      'Register',
-                                      style: TextStyle(
-                                        fontSize:
-                                            buttonFontSize / textScaleFactor,
-                                        fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ),
                               ),
                             ),
                           ),
